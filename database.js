@@ -99,11 +99,11 @@ window.SM_DATA = {
       "img": "assets/vacuum_pump.png"
     },
     "unit_phaser": {
-      "name": "Unit Phaser",
+      "name": "Unit Facer",
       "icon": "⚡",
       "type": "output",
       "slot": 4,
-      "img": "assets/unit_phaser.png"
+      "img": "assets/unit_facer.png"
     },
     "gyroscope": {
       "name": "Gyroscope",
