@@ -68,7 +68,7 @@ window.SM_DATA = {
       "icon": "📐",
       "type": "input",
       "slot": 0,
-      "img": ""
+      "img": "assets/angle_sensor.png"
     },
     "auto_crafter": {
       "name": "Auto Crafter / Recycler",
