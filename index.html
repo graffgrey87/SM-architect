@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SM Architect v3.2 (UI Fixes)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Segoe+UI:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { background-color: #0f0f0f; color: #e5e5e5; font-family: 'Segoe UI', sans-serif; overflow: hidden; }
+        
+        #viewport { flex: 1; overflow: hidden; position: relative; background-color: #121212; cursor: grab; display: flex; align-items: center; justify-content: center; }
+        #viewport:active { cursor: grabbing; }
+        #canvas-container { transition: transform 0.1s ease-out; display: flex; align-items: center; justify-content: center; width: 0; height: 0; }
+        .bg-grid { position: absolute; inset: -500%; z-index: 0; background-image: radial-gradient(#333 1px, transparent 1px); background-size: 20px 20px; opacity: 0.4; pointer-events: none; }
+
+        @keyframes popIn { 0% { transform: scale(0); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+        .scheme-grid { display: flex; flex-wrap: wrap; gap: 60px; justify-content: center; width: 1000px; pointer-events: none; }
+        .node-wrapper { pointer-events: auto; position: relative; display: flex; flex-direction: column; align-items: center; }
+
+        /* === СТИЛИ БЛОКА (ИСПРАВЛЕНО) === */
+        .sm-block {
+            width: 110px; height: 110px;
+            background: radial-gradient(circle at top left, #2a2a2a, #161616);
+            border: 2px solid #555; border-radius: 10px;
+            /* Используем Flexbox для разделения картинки и текста */
+            display: flex; flex-direction: column; justify-content: space-between;
+            position: relative; z-index: 10;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.5);
+            transition: all 0.15s ease; overflow: hidden;
+        }
+
+        /* Контейнер иконки занимает всё место МИНУС место под текст */
+        .icon-container { 
+            flex-grow: 1; 
+            display: flex; align-items: center; justify-content: center; 
+            padding: 5px; width: 100%; overflow: hidden;
+        }
+        
+        .img-layer { 
+            max-width: 100%; max-height: 100%; 
+            object-fit: contain; 
+            filter: drop-shadow(0 4px 4px rgba(0,0,0,0.6)); 
+        }
+        
+        .emoji-layer { font-size: 38px; }
+
+        /* Заголовок теперь имеет свой фон и не наезжает на картинку */
+        .sm-block-title { 
+            width: 100%;
+            background: rgba(0,0,0,0.6); 
+            border-top: 1px solid rgba(255,255,255,0.1);
+            font-size: 10px; font-weight: bold; text-transform: uppercase; 
+            color: #ccc; text-align: center; 
+            padding: 4px 2px;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+            flex-shrink: 0; /* Не сжиматься */
+        }
+
+        /* Индекс блока */
+        .block-idx { 
+            position: absolute; top: -8px; left: -8px; 
+            background: #333; color: #fff; 
+            width: 24px; height: 24px; 
+            border-radius: 50%; border: 2px solid #555; 
+            font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: bold; 
+            display: flex; align-items: center; justify-content: center;
+            z-index: 20; box-shadow: 0 2px 4px rgba(0,0,0,0.5);
+        }
+
+        /* Типы (Цвета рамок) */
+        .type-input { border-color: #22c55e; }
+        .type-logic { border-color: #a855f7; }
+        .type-math { border-color: #f97316; }
+        .type-output { border-color: #ef4444; }
+        .type-util { border-color: #3b82f6; }
+
+        /* Активная подсветка (FIX) */
+        .sm-block.active-highlight { 
+            border-color: #fb923c !important; 
+            box-shadow: 0 0 0 4px rgba(251, 146, 60, 0.3), 0 10px 30px rgba(0,0,0,0.8) !important; 
+            transform: scale(1.2) !important; 
+            z-index: 100 !important; /* Поверх всего */
+            background: #333 !important;
+        }
+        .sm-block:hover { border-color: #fff; transform: scale(1.05); z-index: 40; cursor: help; }
+
+        /* Ссылка в логе (FIX курсора) */
+        .interactive-link { 
+            color: #fb923c; 
+            cursor: pointer !important; /* Рука */
+            border-bottom: 1px dotted #fb923c; font-weight: bold; 
+            transition: all 0.2s;
+        }
+        .interactive-link:hover { background: #fb923c; color: #000; border-radius: 2px; }
+        
+        .zoom-controls { position: absolute; bottom: 20px; right: 20px; display: flex; gap: 5px; z-index: 100; }
+        .zoom-btn { width: 32px; height: 32px; background: #222; color: white; border: 1px solid #444; border-radius: 4px; cursor: pointer; font-weight: bold;}
+        .zoom-btn:hover { background: #444; }
+        
+        .wiki-category-title { color: #fb923c; font-size: 1.1rem; font-weight: bold; border-bottom: 1px solid #444; padding-bottom: 5px; margin-top: 20px; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 1px; }
+        
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-thumb { background: #444; border-radius: 3px; }
+        ::-webkit-scrollbar-track { background: #181818; }
+    </style>
+</head>
+<body class="flex h-screen text-sm">
+
+    <aside class="w-80 bg-[#141414] border-r border-[#222] flex flex-col z-20 shadow-2xl">
+        <div class="p-5 border-b border-[#222]">
+            <h1 class="text-xl font-bold text-orange-500 flex items-center gap-2 mb-4"><span>🛠</span> SM Architect</h1>
+            
+            <div class="grid grid-cols-2 gap-2">
+                <button onclick="clearScreen()" class="py-2 bg-[#222] hover:bg-red-900/30 text-xs text-gray-300 rounded border border-[#333] hover:border-red-500 transition flex items-center justify-center gap-2">
+                    🏠 Home
+                </button>
+                <button onclick="openAdmin()" class="py-2 bg-[#222] hover:bg-blue-900/30 text-xs text-blue-300 rounded border border-[#333] hover:border-blue-500 transition flex items-center justify-center gap-2">
+                    ⚙️ Admin
+                </button>
+                <button onclick="openWiki()" class="py-2 bg-[#222] hover:bg-[#333] text-xs text-gray-300 rounded border border-[#333] transition flex items-center justify-center gap-2">
+                    📖 Wiki
+                </button>
+                <button onclick="resetView()" class="py-2 bg-[#222] hover:bg-[#333] text-xs text-gray-300 rounded border border-[#333] transition flex items-center justify-center gap-2">
+                    🎯 Reset View
+                </button>
+            </div>
+        </div>
+        <div id="menuList" class="p-2 space-y-1 overflow-y-auto flex-1"></div>
+    </aside>
+
+    <main class="flex-1 flex flex-col relative">
+        <div id="topPanel" class="h-auto bg-[#141414] border-b border-[#222] p-6 z-10 shadow-lg hidden">
+            <div class="flex justify-between items-start">
+                <div><h2 class="text-2xl font-bold text-white mb-1" id="infoTitle"></h2><div class="text-gray-400 leading-relaxed max-w-4xl text-sm" id="infoDesc"></div></div>
+                <button onclick="document.getElementById('topPanel').classList.add('hidden')" class="text-gray-500 hover:text-white">✕</button>
+            </div>
+        </div>
+        
+        <div id="viewport">
+            <div id="canvas-container">
+                <div class="bg-grid"></div>
+                <div id="canvas" class="scheme-grid">
+                    <div class="text-gray-600 mt-10 text-lg pointer-events-none">← Выберите схему в меню</div>
+                </div>
+            </div>
+            <div class="zoom-controls">
+                <button class="zoom-btn" onclick="zoom(-0.1)">-</button>
+                <button class="zoom-btn" onclick="zoom(0.1)">+</button>
+            </div>
+        </div>
+
+        <div id="connectionsPanel" class="h-64 bg-[#141414] border-t border-[#222] z-20 flex flex-col hidden shadow-[0_-5px_20px_rgba(0,0,0,0.5)]">
+            <div class="p-3 border-b border-[#222] bg-[#1a1a1a] flex justify-between items-center">
+                <h3 class="font-bold text-gray-500 text-xs uppercase tracking-widest">📡 Connections Log</h3>
+                <button onclick="document.getElementById('connectionsPanel').classList.toggle('h-10')" class="text-xs text-gray-500 hover:text-white">_</button>
+            </div>
+            <div id="connectionsList" class="p-6 overflow-y-auto grid grid-cols-1 lg:grid-cols-2 gap-3 font-mono text-gray-300"></div>
+        </div>
+    </main>
+
+    <div id="wikiModal" class="fixed inset-0 bg-black/90 hidden z-50 flex items-center justify-center p-10 backdrop-blur-sm" onclick="if(event.target===this)closeWiki()"><div class="bg-[#1a1a1a] w-full max-w-4xl h-[85vh] rounded-xl border border-[#333] flex flex-col shadow-2xl"><div class="p-5 border-b border-[#333] flex justify-between items-center"><h2 class="text-xl font-bold text-orange-500">📚 Wiki</h2><button onclick="closeWiki()" class="text-3xl text-gray-500 hover:text-white">&times;</button></div><div class="p-8 overflow-y-auto space-y-6" id="wikiContent"></div></div></div>
+
+    <div id="adminModal" class="fixed inset-0 bg-black/95 hidden z-[60] flex items-center justify-center p-4 backdrop-blur-md" onclick="if(event.target===this)closeAdmin()">
+        <div class="bg-[#1a1a1a] w-full max-w-3xl rounded-xl border border-[#333] flex flex-col shadow-2xl max-h-[90vh]">
+            <div class="p-5 border-b border-[#333] flex justify-between items-center">
+                <h2 class="text-xl font-bold text-blue-400">⚙️ Admin: Universal Import</h2>
+                <button onclick="closeAdmin()" class="text-gray-500 hover:text-white">✕</button>
+            </div>
+            <div class="p-6 overflow-y-auto flex-1 space-y-4">
+                <p class="text-xs text-gray-400">Вставьте ЕДИНЫЙ JSON от ИИ.</p>
+                <textarea id="universalImport" class="w-full h-60 bg-[#111] border border-[#333] rounded p-3 text-xs font-mono text-green-400 focus:border-blue-500 outline-none placeholder-gray-700" placeholder='{ "blocks": {...}, "presets": {...}, "wiki": {...} }'></textarea>
+                <div class="flex justify-end gap-2 pt-2 border-t border-[#333]">
+                    <button onclick="universalMerge()" class="px-4 py-2 bg-blue-900/30 text-blue-300 rounded border border-blue-800 hover:bg-blue-800 hover:text-white text-xs font-bold transition">1. Анализ и Слияние</button>
+                    <button onclick="downloadDB()" id="dlBtn" disabled class="px-4 py-2 bg-green-900/30 text-gray-500 rounded border border-green-900 text-xs font-bold transition opacity-50 cursor-not-allowed">2. Скачать database.js</button>
+                </div>
+                <div id="adminLog" class="h-24 bg-[#000] border border-[#333] rounded p-2 text-[10px] font-mono text-gray-500 overflow-y-auto">Ожидание ввода...</div>
+            </div>
+        </div>
+    </div>
+
+<script src="database.js"></script>
+<script>
+    let library = window.SM_DATA || { blocks: {}, presets: {}, wiki: {} };
+    if(!window.SM_DATA) alert("Ошибка: database.js не найден!");
+
+    let scale = 1, panning = false, pointX = 0, pointY = 0, startX = 0, startY = 0;
+    let isDragging = false;
+    const viewport = document.getElementById('viewport'), container = document.getElementById('canvas-container');
+
+    function init() { renderMenu(); setupZoomPan(); }
+
+    function generateBlockContent(block) {
+        const imgHTML = block.img ? `<img src="${block.img}" class="img-layer" onload="this.style.display='block'; this.previousElementSibling.style.display='none'" onerror="this.style.display='none'; this.previousElementSibling.style.display='block'">` : '';
+        return `<div class="icon-container"><div class="emoji-layer" ${block.img ? 'style="display:none"' : ''}>${block.icon}</div>${imgHTML}</div>`;
+    }
+
+    function renderMenu() {
+        const list = document.getElementById('menuList'); list.innerHTML = '';
+        Object.keys(library.blocks).filter(k => library.blocks[k].type === 'output').forEach(key => {
+            const b = library.blocks[key];
+            const btn = document.createElement('button');
+            btn.className = 'w-full text-left p-3 rounded bg-[#1a1a1a] hover:bg-[#252525] border border-[#333] hover:border-orange-500 transition flex items-center gap-3 mb-1 group';
+            btn.onclick = () => showPresets(key);
+            
+            let iconContent = `<span class="text-2xl">${b.icon}</span>`;
+            if (b.img) {
+                iconContent = `<div class="relative w-8 h-8 flex items-center justify-center"><span class="absolute text-2xl" style="display:none">${b.icon}</span><img src="${b.img}" class="relative z-10 w-full h-full object-contain" onerror="this.previousElementSibling.style.display='block'; this.style.display='none'"></div>`;
+            }
+            btn.innerHTML = `${iconContent}<div><span class="font-bold text-gray-300 group-hover:text-orange-400 text-sm block">${b.name}</span></div>`;
+            list.appendChild(btn);
+        });
+    }
+
+    function showPresets(targetKey) {
+        const canvas = document.getElementById('canvas');
+        const presets = library.presets[targetKey];
+        resetView();
+        document.getElementById('topPanel').classList.add('hidden');
+        document.getElementById('connectionsPanel').classList.add('hidden');
+        if (!presets) { canvas.innerHTML = '<div class="text-gray-500">Нет схем</div>'; return; }
+        canvas.innerHTML = '';
+        let html = `<div class="flex flex-wrap gap-4 justify-center w-full pointer-events-auto">`;
+        presets.forEach((p, idx) => {
+            html += `<button onclick="loadPreset('${targetKey}', ${idx})" class="w-64 p-5 bg-[#1f1f1f] border border-[#333] hover:border-orange-500 rounded-xl text-left transition shadow-lg group"><span class="font-bold text-orange-400 text-lg block group-hover:translate-x-1 transition-transform">${p.name}</span><span class="text-gray-500 text-xs mt-2 block line-clamp-2">${p.desc ? p.desc.replace(/<[^>]*>?/gm, '') : ""}</span></button>`;
+        });
+        html += `</div>`;
+        canvas.innerHTML = html;
+    }
+
+    function loadPreset(targetKey, idx) {
+        const preset = library.presets[targetKey][idx];
+        resetView();
+        document.getElementById('infoTitle').innerText = preset.name;
+        document.getElementById('infoDesc').innerHTML = preset.desc || "";
+        document.getElementById('topPanel').classList.remove('hidden');
+        
+        const canvas = document.getElementById('canvas'); canvas.innerHTML = '';
+        let chainObjects = preset.chain.map((key, i) => ({ ...library.blocks[key], key: key, index: i + 1 }));
+
+        chainObjects.forEach((block, i) => {
+            const el = document.createElement('div');
+            el.className = 'node-wrapper animate-[popIn_0.3s_ease-out]';
+            el.style.animationDelay = `${i * 0.05}s`;
+            const hasWiki = library.wiki && library.wiki[block.key];
+            const clickAttr = hasWiki ? `onclick="handleClick('${block.key}')"` : '';
+
+            el.innerHTML = `
+                <div class="sm-block type-${block.type}" id="block-${i+1}" title="${block.name}" ${clickAttr}>
+                    <div class="block-idx">${i+1}</div>
+                    ${generateBlockContent(block)}
+                    <div class="sm-block-title">${block.name}</div>
+                </div>
+            `;
+            canvas.appendChild(el);
+        });
+
+        const connPanel = document.getElementById('connectionsPanel');
+        const connList = document.getElementById('connectionsList');
+        connPanel.classList.remove('hidden');
+        if (preset.connections) {
+            connList.innerHTML = preset.connections.map(text => {
+                // FIX: Подсветка и курсор
+                let parsed = text.replace(/\[(\d+)\]/g, (m, id) => `<span class="interactive-link" onmouseenter="window.hi(${id})" onmouseleave="window.lo(${id})">[${id}]</span>`);
+                return `<div class="bg-[#1a1a1a] px-4 py-2 rounded border border-[#333] flex items-center gap-2 text-sm mb-1"><span class="text-gray-600">🔗</span> ${parsed}</div>`;
+            }).join('');
+        } else { connList.innerHTML = "<div class='text-gray-500 italic'>Нет описания связей</div>"; }
+    }
+
+    function handleClick(key) { if (!isDragging) openWikiDirect(key); }
+    
+    // FIX: Highlighting Logic
+    window.hi = function(id) { 
+        const el = document.getElementById(`block-${id}`); 
+        if(el) el.classList.add('active-highlight'); 
+    }
+    window.lo = function(id) { 
+        const el = document.getElementById(`block-${id}`); 
+        if(el) el.classList.remove('active-highlight'); 
+    }
+
+    window.clearScreen = function() {
+        document.getElementById('canvas').innerHTML = '<div class="text-gray-600 mt-10 text-lg pointer-events-none">← Выберите схему в меню</div>';
+        document.getElementById('topPanel').classList.add('hidden');
+        document.getElementById('connectionsPanel').classList.add('hidden');
+        resetView();
+    }
+
+    function setupZoomPan() {
+        viewport.addEventListener('wheel', (e) => { e.preventDefault(); zoom(e.deltaY > 0 ? -0.1 : 0.1); });
+        viewport.addEventListener('mousedown', (e) => { isDragging = false; panning = true; startX = e.clientX - pointX; startY = e.clientY - pointY; viewport.style.cursor = 'grabbing'; window.addEventListener('mousemove', onMouseMove); });
+        window.addEventListener('mouseup', () => { panning = false; viewport.style.cursor = 'grab'; window.removeEventListener('mousemove', onMouseMove); });
+    }
+    function onMouseMove(e) { if(!panning) return; e.preventDefault(); isDragging = true; pointX = e.clientX - startX; pointY = e.clientY - startY; updateTransform(); }
+    function zoom(delta) { scale += delta; scale = Math.min(Math.max(.2, scale), 3); updateTransform(); }
+    function updateTransform() { container.style.transform = `translate(${pointX}px, ${pointY}px) scale(${scale})`; }
+    window.resetView = function() { scale = 1; pointX = 0; pointY = 0; updateTransform(); }
+
+    window.openWiki = function() { renderWiki(); document.getElementById('wikiModal').classList.remove('hidden'); }
+    window.openWikiDirect = function(k) { renderWiki(); const el = document.getElementById('wiki-'+k); if(el) { document.getElementById('wikiModal').classList.remove('hidden'); el.scrollIntoView({behavior:'smooth', block:'center'}); el.classList.add('border-orange-500'); } }
+    
+    function renderWiki() {
+        const c = document.getElementById('wikiContent'); c.innerHTML = '';
+        if(!library.wiki) return;
+        const categories = { "Input": [], "Logic": [], "Math/Util": [], "Output": [], "Misc": [] };
+        for (const [k, i] of Object.entries(library.wiki)) {
+            let cat = i.category || "Misc"; 
+            if(!categories[cat]) categories[cat] = [];
+            let iconHTML = i.img ? `<div class="relative w-10 h-10 flex items-center justify-center"><img src="${i.img}" class="w-full h-full object-contain"></div>` : `<span class="text-2xl">${i.icon || '🔹'}</span>`;
+            categories[cat].push(`<div id="wiki-${k}" class="bg-[#222] p-5 rounded border border-[#333] mb-4"><h3 class="text-lg font-bold text-orange-400 mb-2 flex items-center gap-3">${iconHTML} ${i.title}</h3><p class="text-gray-300 leading-relaxed">${i.text}</p></div>`);
+        }
+        for (const [catName, items] of Object.entries(categories)) {
+            if(items.length > 0) { c.innerHTML += `<div class="wiki-category-title">${catName}</div>`; c.innerHTML += items.join(''); }
+        }
+    }
+    window.closeWiki = function() { document.getElementById('wikiModal').classList.add('hidden'); }
+
+    window.openAdmin = function() { document.getElementById('adminModal').classList.remove('hidden'); }
+    window.closeAdmin = function() { document.getElementById('adminModal').classList.add('hidden'); }
+
+    window.universalMerge = function() {
+        const log = document.getElementById('adminLog');
+        const btn = document.getElementById('dlBtn');
+        let rawText = document.getElementById('universalImport').value.trim();
+        const cleanJSON = (str) => str.replace(/^```json/, '').replace(/^```/, '').replace(/```$/, '').trim();
+        rawText = cleanJSON(rawText);
+
+        try {
+            let parsed = {};
+            if (rawText.startsWith('{')) parsed = JSON.parse(rawText);
+            else throw new Error("Код должен начинаться с {");
+
+            const mergedLibrary = { ...library };
+            let logStats = [];
+
+            if (parsed.blocks) {
+                let count = 0; for (let k in parsed.blocks) { mergedLibrary.blocks[k] = parsed.blocks[k]; count++; }
+                logStats.push(`Блоков: ${count}`);
+            }
+            if (parsed.presets) {
+                let count = 0; for (let k in parsed.presets) {
+                    if (mergedLibrary.presets[k]) mergedLibrary.presets[k] = [...mergedLibrary.presets[k], ...parsed.presets[k]];
+                    else mergedLibrary.presets[k] = parsed.presets[k];
+                    count++;
+                }
+                logStats.push(`Схем: ${count}`);
+            }
+            if (parsed.wiki) {
+                let count = 0; if (!mergedLibrary.wiki) mergedLibrary.wiki = {};
+                for (let k in parsed.wiki) { mergedLibrary.wiki[k] = parsed.wiki[k]; count++; }
+                logStats.push(`Вики: ${count}`);
+            }
+
+            library = mergedLibrary;
+            renderMenu();
+            
+            log.innerHTML = `<span class="text-green-400">УСПЕШНО!</span><br>Добавлено: ${logStats.join(', ') || '0'}.`;
+            btn.disabled = false;
+            btn.classList.remove('opacity-50', 'cursor-not-allowed');
+            btn.classList.add('bg-green-900', 'text-green-100', 'hover:bg-green-800');
+
+        } catch (e) {
+            log.innerHTML = `<span class="text-red-500">Ошибка JSON:</span> ${e.message}`;
+        }
+    }
+
+    window.downloadDB = function() {
+        const content = "window.SM_DATA = " + JSON.stringify(library, null, 2) + ";";
+        const blob = new Blob([content], { type: "text/javascript" });
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = "database.js";
+        link.click();
+    }
+
+    init();
+</script>
+</body>
+</html>
