@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SM Architect v3.3 (Anti-Duplicate)</title>
+    <title>SM Architect v3.4 (Multi-File)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Segoe+UI:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
@@ -46,7 +46,7 @@
         }
 
         .type-input { border-color: #22c55e; } .type-logic { border-color: #a855f7; }
-        .type-math { border-color: #f97316; } .type-output { border-color: #ef4444; } .type-util { border-color: #3b82f6; }
+        .type-math { border-color: #f97316; } .type-output { border-color: #ef4444; } .type-util { border-color: #3b82f6; } .type-hidden { opacity: 0.5; border-style: dashed; }
 
         .sm-block.active-highlight { 
             border-color: #fb923c !important; box-shadow: 0 0 0 4px rgba(251, 146, 60, 0.3), 0 10px 30px rgba(0,0,0,0.8) !important; 
@@ -105,7 +105,6 @@
                 <textarea id="universalImport" class="w-full h-60 bg-[#111] border border-[#333] rounded p-3 text-xs font-mono text-green-400 focus:border-blue-500 outline-none placeholder-gray-700" placeholder='{ "blocks": {...}, "presets": {...}, "wiki": {...} }'></textarea>
                 <div class="flex justify-end gap-2 pt-2 border-t border-[#333]">
                     <button onclick="copyKeys()" class="mr-auto px-4 py-2 bg-gray-800 text-gray-300 rounded border border-gray-600 hover:bg-gray-700 hover:text-white text-xs font-bold transition flex items-center gap-2">📋 Copy Keys</button>
-                    
                     <button onclick="universalMerge()" class="px-4 py-2 bg-blue-900/30 text-blue-300 rounded border border-blue-800 hover:bg-blue-800 hover:text-white text-xs font-bold transition">1. Анализ и Слияние</button>
                     <button onclick="downloadDB()" id="dlBtn" disabled class="px-4 py-2 bg-green-900/30 text-gray-500 rounded border border-green-900 text-xs font-bold transition opacity-50 cursor-not-allowed">2. Скачать database.js</button>
                 </div>
@@ -113,12 +112,27 @@
             </div>
         </div>
     </div>
+<script src="blocks.js"></script>
+<script src="wiki.js"></script>
+<script src="presets.js"></script>
 
-<script src="database.js"></script>
 <script>
-    let library = window.SM_DATA || { blocks: {}, presets: {}, wiki: {} };
-    if(!window.SM_DATA) alert("Ошибка: database.js не найден!");
+    // БЕЗОПАСНАЯ СБОРКА БАЗЫ
+    const blocksDB = window.SM_BLOCKS || {};
+    const wikiDB = window.SM_WIKI || {};
+    const presetsDB = window.SM_PRESETS || {};
 
+    let library = {
+        blocks: blocksDB,
+        wiki: wikiDB,
+        presets: presetsDB
+    };
+
+    // ПРОВЕРКА И УВЕДОМЛЕНИЕ
+    if (Object.keys(library.blocks).length === 0) console.log("⚠️ Blocks DB is empty");
+    else console.log("✅ Blocks loaded:", Object.keys(library.blocks).length);
+
+    // --- КОД ДВИЖКА ---
     let scale = 1, panning = false, pointX = 0, pointY = 0, startX = 0, startY = 0;
     let isDragging = false;
     const viewport = document.getElementById('viewport'), container = document.getElementById('canvas-container');
@@ -132,10 +146,22 @@
 
     function renderMenu() {
         const list = document.getElementById('menuList'); list.innerHTML = '';
-        Object.keys(library.blocks).filter(k => library.blocks[k].type === 'output').forEach(key => {
+        const visibleKeys = Object.keys(library.blocks).filter(k => library.blocks[k].type !== 'hidden');
+        
+        const withPresets = visibleKeys.filter(k => library.presets[k] && library.presets[k].length > 0);
+        const withoutPresets = visibleKeys.filter(k => !library.presets[k] || library.presets[k].length === 0);
+
+        [...withPresets, ...withoutPresets].forEach(key => {
             const b = library.blocks[key];
+            if(b.type === 'hidden') return;
+
             const btn = document.createElement('button');
             btn.className = 'w-full text-left p-3 rounded bg-[#1a1a1a] hover:bg-[#252525] border border-[#333] hover:border-orange-500 transition flex items-center gap-3 mb-1 group';
+            
+            if (library.presets[key]) {
+                btn.classList.add('border-l-4', 'border-l-orange-500');
+            }
+
             btn.onclick = () => showPresets(key);
             
             let iconContent = `<span class="text-2xl">${b.icon}</span>`;
@@ -153,8 +179,14 @@
         resetView();
         document.getElementById('topPanel').classList.add('hidden');
         document.getElementById('connectionsPanel').classList.add('hidden');
-        if (!presets) { canvas.innerHTML = '<div class="text-gray-500">Нет схем</div>'; return; }
+        
         canvas.innerHTML = '';
+        
+        if (!presets || presets.length === 0) { 
+            canvas.innerHTML = '<div class="text-gray-500 mt-10">Нет готовых схем для этого блока</div>'; 
+            return; 
+        }
+        
         let html = `<div class="flex flex-wrap gap-4 justify-center w-full pointer-events-auto">`;
         presets.forEach((p, idx) => {
             html += `<button onclick="loadPreset('${targetKey}', ${idx})" class="w-64 p-5 bg-[#1f1f1f] border border-[#333] hover:border-orange-500 rounded-xl text-left transition shadow-lg group"><span class="font-bold text-orange-400 text-lg block group-hover:translate-x-1 transition-transform">${p.name}</span><span class="text-gray-500 text-xs mt-2 block line-clamp-2">${p.desc ? p.desc.replace(/<[^>]*>?/gm, '') : ""}</span></button>`;
@@ -169,18 +201,30 @@
         document.getElementById('infoTitle').innerText = preset.name;
         document.getElementById('infoDesc').innerHTML = preset.desc || "";
         document.getElementById('topPanel').classList.remove('hidden');
+        
         const canvas = document.getElementById('canvas'); canvas.innerHTML = '';
-        let chainObjects = preset.chain.map((key, i) => ({ ...library.blocks[key], key: key, index: i + 1 }));
+        
+        let chainObjects = [];
+        if (preset.chain) {
+            preset.chain.forEach((key, i) => {
+                let blockData = library.blocks[key] || { name: "UNDEFINED", icon: "❓", type: "hidden", img: "" };
+                chainObjects.push({ ...blockData, key: key, index: i + 1 });
+            });
+        }
+
         chainObjects.forEach((block, i) => {
             const el = document.createElement('div');
             el.className = 'node-wrapper animate-[popIn_0.3s_ease-out]';
             el.style.animationDelay = `${i * 0.05}s`;
+            
             const hasWiki = library.wiki && library.wiki[block.key];
-            const cursorClass = hasWiki ? 'has-wiki' : '';
             const clickAttr = hasWiki ? `onclick="handleClick('${block.key}')"` : '';
-            el.innerHTML = `<div class="sm-block type-${block.type} ${cursorClass}" id="block-${block.index}" title="${block.name}" ${clickAttr}><div class="block-idx">${block.index}</div>${generateBlockContent(block)}<div class="sm-block-title">${block.name}</div></div>`;
+            const cursorClass = hasWiki ? 'cursor-help' : '';
+
+            el.innerHTML = `<div class="sm-block type-${block.type} ${cursorClass}" id="block-${i+1}" title="${block.name}" ${clickAttr}><div class="block-idx">${i+1}</div>${generateBlockContent(block)}<div class="sm-block-title">${block.name}</div></div>`;
             canvas.appendChild(el);
         });
+
         const connPanel = document.getElementById('connectionsPanel');
         const connList = document.getElementById('connectionsList');
         connPanel.classList.remove('hidden');
@@ -213,9 +257,11 @@
     function renderWiki() {
         const c = document.getElementById('wikiContent'); c.innerHTML = '';
         if(!library.wiki) return;
-        const categories = { "Input": [], "Logic": [], "Math/Util": [], "Output": [], "Misc": [] };
+        const categories = { "Input": [], "Logic": [], "Math/Util": [], "Output": [], "Misc": [], "Fant Mod": [] };
+        
         for (const [k, i] of Object.entries(library.wiki)) {
-            let cat = i.category || "Misc"; 
+            let cat = i.category || "Misc";
+            if (cat.includes("Fant")) cat = "Fant Mod"; 
             if(!categories[cat]) categories[cat] = [];
             let iconHTML = i.img ? `<div class="relative w-10 h-10 flex items-center justify-center"><img src="${i.img}" class="w-full h-full object-contain"></div>` : `<span class="text-2xl">${i.icon || '🔹'}</span>`;
             categories[cat].push(`<div id="wiki-${k}" class="bg-[#222] p-5 rounded border border-[#333] mb-4"><h3 class="text-lg font-bold text-orange-400 mb-2 flex items-center gap-3">${iconHTML} ${i.title}</h3><p class="text-gray-300 leading-relaxed">${i.text}</p></div>`);
@@ -226,19 +272,15 @@
     }
     window.closeWiki = function() { document.getElementById('wikiModal').classList.add('hidden'); }
 
-    // === ADMIN LOGIC (SMART MERGE v3.1) ===
+    // === ADMIN LOGIC (MULTI-FILE EXPORT) ===
     window.openAdmin = function() { document.getElementById('adminModal').classList.remove('hidden'); }
     window.closeAdmin = function() { document.getElementById('adminModal').classList.add('hidden'); }
 
-    // [NEW] Copy Keys Function
     window.copyKeys = function() {
         const keys = Object.keys(library.blocks).join(', ');
         const textToCopy = "Мои текущие ключи блоков (НЕ ДУБЛИРУЙ ИХ): " + keys;
         navigator.clipboard.writeText(textToCopy).then(() => {
-            const log = document.getElementById('adminLog');
-            log.innerHTML = `<span class="text-green-400 font-bold">Список ключей скопирован!</span><br>Вставь его в чат с ИИ перед генерацией.`;
-        }).catch(err => {
-            console.error('Failed to copy: ', err);
+            document.getElementById('adminLog').innerHTML = `<span class="text-green-400">Список ключей скопирован!</span>`;
         });
     }
 
@@ -252,36 +294,22 @@
         try {
             let parsed = {};
             if (rawText.startsWith('{')) parsed = JSON.parse(rawText);
-            else throw new Error("Код должен начинаться с {");
+            else throw new Error("JSON должен начинаться с {");
 
-            const mergedLibrary = { ...library };
-            let logStats = [];
-
-            if (parsed.blocks) {
-                let count = 0; for (let k in parsed.blocks) { mergedLibrary.blocks[k] = parsed.blocks[k]; count++; }
-                logStats.push(`Блоков: ${count}`);
-            }
+            if (parsed.blocks) Object.assign(library.blocks, parsed.blocks);
+            if (parsed.wiki) Object.assign(library.wiki, parsed.wiki);
             if (parsed.presets) {
-                let count = 0; for (let k in parsed.presets) {
-                    if (mergedLibrary.presets[k]) mergedLibrary.presets[k] = [...mergedLibrary.presets[k], ...parsed.presets[k]];
-                    else mergedLibrary.presets[k] = parsed.presets[k];
-                    count++;
+                for (let k in parsed.presets) {
+                    if (library.presets[k]) library.presets[k] = [...library.presets[k], ...parsed.presets[k]];
+                    else library.presets[k] = parsed.presets[k];
                 }
-                logStats.push(`Схем: ${count}`);
-            }
-            if (parsed.wiki) {
-                let count = 0; if (!mergedLibrary.wiki) mergedLibrary.wiki = {};
-                for (let k in parsed.wiki) { mergedLibrary.wiki[k] = parsed.wiki[k]; count++; }
-                logStats.push(`Вики: ${count}`);
             }
 
-            library = mergedLibrary;
             renderMenu();
-            
-            log.innerHTML = `<span class="text-green-400">УСПЕШНО!</span><br>Добавлено: ${logStats.join(', ') || '0'}.`;
+            log.innerHTML = `<span class="text-green-400">УСПЕШНО!</span> Данные обновлены в памяти.`;
             btn.disabled = false;
             btn.classList.remove('opacity-50', 'cursor-not-allowed');
-            btn.classList.add('bg-green-900', 'text-green-100', 'hover:bg-green-800');
+            btn.classList.add('bg-green-900', 'text-green-100');
 
         } catch (e) {
             log.innerHTML = `<span class="text-red-500">Ошибка JSON:</span> ${e.message}`;
@@ -289,12 +317,7 @@
     }
 
     window.downloadDB = function() {
-        const content = "window.SM_DATA = " + JSON.stringify(library, null, 2) + ";";
-        const blob = new Blob([content], { type: "text/javascript" });
-        const link = document.createElement("a");
-        link.href = URL.createObjectURL(blob);
-        link.download = "database.js";
-        link.click();
+        alert("На телефоне скачивание отключено. Используйте копирование кода.");
     }
 
     init();
