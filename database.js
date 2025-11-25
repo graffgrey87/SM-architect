@@ -1,506 +1,125 @@
-window.SM_DATA = {
-  "blocks": {
-    "sensor": {
-      "name": "Sensor",
-      "icon": "👁️",
-      "type": "input",
-      "slot": 0,
-      "img": "assets/sensor.png"
-    },
-    "button": {
-      "name": "Button",
-      "icon": "🔴",
-      "type": "input",
-      "slot": 0,
-      "img": "assets/button.png"
-    },
-    "switch": {
-      "name": "Switch",
-      "icon": "🔌",
-      "type": "input",
-      "slot": 0,
-      "img": "assets/switch.png"
-    },
-    "logic_gate": {
-      "name": "Logic Gate",
-      "icon": "⚡",
-      "type": "logic",
-      "slot": 2,
-      "img": "assets/logic.png"
-    },
-    "timer": {
-      "name": "Timer",
-      "icon": "⏱️",
-      "type": "util",
-      "slot": 3,
-      "img": "assets/timer.png"
-    },
-    "thruster": {
-      "name": "Thruster",
-      "icon": "🚀",
-      "type": "output",
-      "slot": 4,
-      "img": "assets/thruster.png"
-    },
-    "xor": {
-      "name": "XOR Gate",
-      "icon": "🔵",
-      "type": "logic",
-      "slot": 2,
-      "img": "assets/logic.png"
-    },
-    "door": {
-      "name": "Controller",
-      "icon": "🚪",
-      "type": "output",
-      "slot": 4,
-      "img": "assets/controller.png"
-    },
-    "angle": {
-      "name": "Angle Sensor",
-      "icon": "📐",
-      "type": "input",
-      "slot": 0,
-      "img": "assets/angle_sensor.png"
-    },
-    "auto_crafter": {
-      "name": "Auto Crafter",
-      "icon": "⚡",
-      "type": "util",
-      "slot": 3,
-      "img": "assets/auto_crafter.png"
-    },
-    "smart_chest": {
-      "name": "Smart Chest",
-      "icon": "⚡",
-      "type": "util",
-      "slot": 3,
-      "img": "assets/smart_chest.png"
-    },
-    "chest_fill_detector": {
-      "name": "Chest Fill Detector",
-      "icon": "⚡",
-      "type": "output",
-      "slot": 4,
-      "img": "assets/chest_fill_detector.png"
-    },
-    "vacuum_pump": {
-      "name": "Vacuum Pump",
-      "icon": "⚡",
-      "type": "util",
-      "slot": 3,
-      "img": "assets/vacuum_pump.png"
-    },
-    "unit_facer": {
-      "name": "Unit Facer",
-      "icon": "⚡",
-      "type": "output",
-      "slot": 4,
-      "img": "assets/unit_facer.png"
-    },
-    "gyroscope": {
-      "name": "Gyroscope",
-      "icon": "⚡",
-      "type": "input",
-      "slot": 0,
-      "img": "assets/gyroscope.png"
-    },
-    "tank_track_master": {
-      "name": "Modular Tank Track",
-      "icon": "⚡",
-      "type": "input",
-      "slot": 0,
-      "img": "assets/tank_track_master.png"
-    },
-    "seat_input_converter": {
-      "name": "Seat Input Converter",
-      "icon": "⚡",
-      "type": "output",
-      "slot": 4,
-      "img": "assets/seat_input_converter.png"
-    },
-    "logic_gate_or": {
-      "name": "Logic Gate (OR)",
-      "icon": "⚡",
-      "type": "logic",
-      "slot": 2,
-      "img": "assets/logic_gate_or.png"
-    },
-    "gatling_gun": {
-      "name": "Gatling Gun",
-      "icon": "⚡",
-      "type": "input",
-      "slot": 0,
-      "img": "assets/gatling_gun.png"
-    },
-    "tank_cannon": {
-      "name": "Tank Cannon",
-      "icon": "⚡",
-      "type": "input",
-      "slot": 0,
-      "img": "assets/tank_cannon.png"
-    },
-    "mountable_shotgun": {
-      "name": "Mountable Shotgun",
-      "icon": "⚡",
-      "type": "input",
-      "slot": 0,
-      "img": "assets/mountable_shotgun.png"
-    },
-    "chemical_cannon": {
-      "name": "Chemical Cannon",
-      "icon": "⚡",
-      "type": "input",
-      "slot": 0,
-      "img": "assets/chemical_cannon.png"
-    },
-    "chemical_lift_engine": {
-      "name": "Chemical Lift Engine",
-      "icon": "⚡",
-      "type": "input",
-      "slot": 0,
-      "img": "assets/chemical_lift_engine.png"
-    },
-    "adjustable_rotor": {
-      "name": "Adjustable Rotor",
-      "icon": "⚡",
-      "type": "input",
-      "slot": 0,
-      "img": "assets/adjustable_rotor.png"
-    },
-    "small_thruster": {
-      "name": "Small Thruster",
-      "icon": "⚡",
-      "type": "input",
-      "slot": 0,
-      "img": "assets/small_thruster.png"
-    },
-    "water_wheel": {
-      "name": "Water Wheel",
-      "icon": "⚡",
-      "type": "output",
-      "slot": 4,
-      "img": "assets/water_wheel.png"
-    },
-    "continuum_generator": {
-      "name": "Continuum Generator",
-      "icon": "⚡",
-      "type": "util",
-      "slot": 3,
-      "img": "assets/continuum_generator.png"
-    },
-    "fluid_sensor": {
-      "name": "Fluid Sensor",
-      "icon": "⚡",
-      "type": "output",
-      "slot": 4,
-      "img": "assets/fluid_sensor.png"
-    },
-    "water_tank": {
-      "name": "Water Tank",
-      "icon": "⚡",
-      "type": "util",
-      "slot": 3,
-      "img": "assets/water_tank.png"
-    },
-    "universal_drill": {
-      "name": "Universal Drill",
-      "icon": "⚡",
-      "type": "input",
-      "slot": 0,
-      "img": "assets/universal_drill.png"
-    },
-    "growing_sensor": {
-      "name": "Growing Sensor",
-      "icon": "⚡",
-      "type": "output",
-      "slot": 4,
-      "img": "assets/growing_sensor.png"
-    },
-    "daylight_sensor": {
-      "name": "Daylight Sensor",
-      "icon": "⚡",
-      "type": "output",
-      "slot": 4,
-      "img": "assets/daylight_sensor.png"
-    },
-    "player_seat_detector": {
-      "name": "Player Seat Detector",
-      "icon": "⚡",
-      "type": "output",
-      "slot": 4,
-      "img": "assets/player_seat_detector.png"
-    },
-    "robot_detector": {
-      "name": "Robot Radar",
-      "icon": "⚡",
-      "type": "output",
-      "slot": 4,
-      "img": "assets/robot_detector.png"
-    },
-    "creation_anchor": {
-      "name": "Creation Anchor",
-      "icon": "⚡",
-      "type": "input",
-      "slot": 0,
-      "img": "assets/creation_anchor.png"
-    },
-    "target_block": {
-      "name": "Unit Facer Target",
-      "icon": "⚡",
-      "type": "util",
-      "slot": 3,
-      "img": "assets/unit_facer_target_block.png"
-    },
-    "team_life_sensor": {
-      "name": "Team Life Sensor",
-      "icon": "⚡",
-      "type": "output",
-      "slot": 4,
-      "img": "assets/team_life_sensor.png"
-    },
-    "respawn_point": {
-      "name": "Team Respawn Point",
-      "icon": "⚡",
-      "type": "input",
-      "slot": 0,
-      "img": "assets/team_respawn_point.png"
-    },
-    "multi_connection_junction": {
-      "name": "Multi Connection Junction",
-      "icon": "⚡",
-      "type": "logic",
-      "slot": 2,
-      "img": "assets/multi_connection_junction.png"
-    },
-    "battery_container": {
-      "name": "Battery Container",
-      "icon": "⚡",
-      "type": "output",
-      "slot": 4,
-      "img": "assets/battery_container.png"
-    },
-    "flag_block": {
-      "name": "Flag Block",
-      "icon": "⚡",
-      "type": "util",
-      "slot": 3,
-      "img": "assets/flag_block.png"
-    },
-    "engine": {
-      "name": "Engine",
-      "icon": "⚡",
-      "type": "input",
-      "slot": 0,
-      "img": "assets/engine.png"
-    },
-    "pumpjack": {
-      "name": "Pumpjack",
-      "icon": "⚡",
-      "type": "util",
-      "slot": 3,
-      "img": "assets/pumpjack.png"
-    },
-    "pumpjack_outlet": {
-      "name": "Pumpjack Outlet",
-      "icon": "⚡",
-      "type": "util",
-      "slot": 3,
-      "img": "assets/pumpjack_outlet.png"
-    },
-
-    // --- HIDDEN BLOCKS ---
-    "pid": {
-      "name": "PID (Fant)",
-      "icon": "📊",
-      "type": "hidden",
-      "slot": 1,
-      "img": ""
-    },
-    "math_block": {
-      "name": "Math Block",
-      "icon": "∑",
-      "type": "hidden",
-      "slot": 1,
-      "img": "assets/math_block.png"
-    }
-  },
-
-  "presets": {
-    "door": [
-      {
-        "name": "Шлюз (XOR)",
-        "desc": "Управление дверью с двух сторон.",
-        "chain": [
-          "switch",
-          "switch",
-          "xor",
-          "door"
-        ],
-        "connections": [
-          "Оба Switch → XOR",
-          "XOR → Controller"
-        ]
-      }
-    ],
-    "tank_track_master": [
-      {
-        "name": "Управление траками",
-        "desc": "Система управления модульными гусеницами через конвертер сиденья.",
-        "chain": [
-          "seat_input_converter",
-          "logic_gate_or",
-          "tank_track_master",
-          "battery_container"
-        ],
-        "connections": [
-          "4x Seat Converter (WASD) -> 4x Logic Gate (OR)",
-          "Logic Gate (Front) -> Track Master (Input 1, Default Color)",
-          "Logic Gate (Back) -> Track Master (Input 2, Other Color)",
-          "Battery -> Track Master (Power)"
-        ]
-      }
-    ],
-    "unit_facer": [
-      {
-        "name": "Авто-наведение (Facer)",
-        "desc": "Автоматический поворот турели на цель.",
-        "chain": [
-          "unit_facer",
-          "gyroscope"
-        ],
-        "connections": [
-          "Unit Facer -> Gyroscope (Default Color для горизонтали)",
-          "Unit Facer -> Gyroscope (Other Color для вертикали)"
-        ]
-      }
-    ],
-    "pumpjack": [
-      {
-        "name": "Транспортировка жидкости",
-        "desc": "Перекачка ресурсов на базу без труб.",
-        "chain": [
-          "pumpjack",
-          "pumpjack_outlet"
-        ],
-        "connections": [
-          "Pumpjack (в жидкости) -> Pumpjack Outlet (на базе)"
-        ]
-      }
-    ],
-    "water_tank": [
-      {
-        "name": "Бак с воздухом",
-        "desc": "Дыхание под водой через сиденье.",
-        "chain": [
-          "water_tank",
-          "seat"
-        ],
-        "connections": [
-          "Water Tank -> Seat"
-        ]
-      }
-    ]
-  },
-
+{
   "wiki": {
-    "switch": {
-      "title": "Switch",
-      "icon": "🔌",
-      "img": "assets/switch.png",
-      "category": "Input",
-      "text": "Базовый переключатель. Вкл/Выкл."
-    },
-    "sensor": {
-      "title": "Sensor",
-      "icon": "👁️",
-      "img": "assets/sensor.png",
-      "category": "Input",
-      "text": "Обнаруживает объекты."
-    },
-    "xor": {
-      "title": "XOR Gate",
-      "icon": "🔵",
-      "img": "assets/logic.png",
+    "logic_gate": {
+      "title": "Логический Гейт",
+      "icon": "⚡",
+      "img": "assets/logic_gate.png",
       "category": "Logic",
-      "text": "Исключающее ИЛИ. Сигнал только если активен один вход."
+      "text": "Мощный блок, позволяющий создавать базовые логические функции. Нажав 'E', механик может выбрать тип логической операции (AND, OR, XOR и др.). Логический гейт можно подключать к другим гейтам, триггерам, таймерам и многому другому. Идеально для создания сложных механизмов."
     },
     "timer": {
-      "title": "Timer",
+      "title": "Таймер",
       "icon": "⏱️",
       "img": "assets/timer.png",
       "category": "Math/Util",
-      "text": "Задержка сигнала."
+      "text": "Таймер позволяет добавить задержку сигнала между двумя интерактивными частями. Например, между переключателем и контроллером. Отлично сочетается с Логическими Гейтами."
     },
-    "door": {
-      "title": "Controller",
+    "sensor": {
+      "title": "Сенсор",
+      "icon": "👁️",
+      "img": "assets/sensor.png",
+      "category": "Input",
+      "text": "Он обнаруживает, он активирует! Сенсор срабатывает при обнаружении любой поверхности в поле зрения (дальность — 10 блоков). Может активировать двигатель, трастер, контроллер и многое другое."
+    },
+    "switch": {
+      "title": "Переключатель",
+      "icon": "🔌",
+      "img": "assets/switch.png",
+      "category": "Input",
+      "text": "Бесконечное переключение по требованию. Переключатель активирует всё, к чему подключен, что делает его незаменимым для включения и выключения механизмов одним нажатием. Может запускать двигатели, трастеры, контроллеры и т.д."
+    },
+    "button": {
+      "title": "Кнопка",
+      "icon": "🔴",
+      "img": "assets/button.png",
+      "category": "Input",
+      "text": "Активирует устройства. Кнопка подает сигнал только до тех пор, пока она нажата."
+    },
+    "controller": {
+      "title": "Контроллер",
       "icon": "🚪",
       "img": "assets/controller.png",
       "category": "Output",
-      "text": "Контроллер подшипников."
+      "text": "Позволяет подшипникам вращаться в заданной последовательности. Идеально подходит для создания трансформирующихся построек. Должен быть подключен к подшипникам. Активируется триггером или сиденьем водителя."
     },
-    "auto_crafter": {
-      "title": "Auto Crafter / Recycler",
-      "icon": "⚡",
-      "img": "assets/auto_crafter.png",
-      "category": "Utility",
-      "text": "<b>Суть:</b> Блок (Mod Fant) для авто-крафта или переработки.<br><b>Логика:</b> При ON начинает крафтить предмет из слота. Введите -1 для бесконечного крафта.<br><b>Настройки:</b> Слот для чертежа.<br><b>Цвета:</b> Default = Crafter, White = Recycler."
-    },
-    "smart_chest": {
-      "title": "Smart Chest",
-      "icon": "⚡",
-      "img": "assets/smart_chest.png",
-      "category": "Utility",
-      "text": "<b>Суть:</b> Умный сундук с фильтром и дисплеем.<br><b>Логика:</b> Дает сигнал, когда ПОЛН. Принимает предметы по трубам согласно фильтру."
-    },
-    "chest_fill_detector": {
-      "title": "Chest Fill Detector",
-      "icon": "⚡",
-      "img": "assets/chest_fill_detector.png",
+    "thruster": {
+      "title": "Трастер",
+      "icon": "🚀",
+      "img": "assets/thruster.png",
       "category": "Output",
-      "text": "<b>Суть:</b> Датчик заполненности сундука.<br><b>Настройки:</b> Кнопка E меняет режим (Сигнал если ПОЛН / Сигнал если ПУСТ)."
+      "text": "Достаточное количество этих штук заставит что угодно летать. Для активации необходимо подключить к триггеру или сиденью водителя."
     },
-    "vacuum_pump": {
-      "title": "Vacuum Pump",
-      "icon": "⚡",
-      "img": "assets/vacuum_pump.png",
-      "category": "Utility",
-      "text": "<b>Суть:</b> Насос для предметов и жидкостей.<br><b>Логика:</b> Всасывает или выталкивает.<br><b>Настройки:</b> Кнопка сбоку меняет направление.<br><b>Цвета:</b> White = Анти-фильтр."
-    },
-    "unit_facer": {
-      "title": "Unit Facer",
-      "icon": "⚡",
-      "img": "assets/unit_facer.png",
+    "gas_engine": {
+      "title": "Бензиновый Двигатель",
+      "icon": "⛽",
+      "img": "assets/gas_engine.png",
       "category": "Output",
-      "text": "<b>Суть:</b> Радар для наведения.<br><b>Настройки:</b> Ползунок меняет дистанцию.<br><b>Важно:</b> Глаз должен быть сверху."
+      "text": "Двигатель с фиксированной скоростью и регулируемой мощностью, идеально подходящий для транспортных средств. Подключается к сиденью водителя или триггерам."
     },
-    "gyroscope": {
-      "title": "Gyroscope",
-      "icon": "⚡",
-      "img": "assets/gyroscope.png",
+    "electric_engine": {
+      "title": "Электродвигатель",
+      "icon": "🔋",
+      "img": "assets/electric_engine.png",
+      "category": "Output",
+      "text": "Питает подшипники. Двигатель с фиксированной мощностью и регулируемой скоростью. Медленный, но очень сильный. Подключается к сиденью водителя или триггерам."
+    },
+    "piston": {
+      "title": "Поршень",
+      "icon": "↕️",
+      "img": "assets/piston.png",
+      "category": "Output",
+      "text": "Выдвигается и задвигается! Подключите к триггеру для активации. Поршень также можно подключить к контроллеру, чтобы задать последовательность движений. Отлично подходит для впечатляющих построек."
+    },
+    "bearing": {
+      "title": "Подшипник",
+      "icon": "⚙️",
+      "img": "assets/bearing.png",
+      "category": "Output",
+      "text": "Всё, что вы установите на подшипник, будет вращаться. Подшипники можно подключать к двигателю или сиденью водителя для управления различными способами."
+    },
+    "drivers_seat": {
+      "title": "Сиденье Водителя",
+      "icon": "💺",
+      "img": "assets/drivers_seat.png",
       "category": "Input",
-      "text": "<b>Суть:</b> Вращатель для турелей.<br><b>Цвета:</b> Default = Горизонталь, Другой цвет = Вертикаль."
+      "text": "Позволяет поворачивать подшипники влево и вправо. Подключается к двигателю для управления направлением движения. Также может активировать другие интерактивные части через триггеры (кнопки 1-0)."
     },
-    "tank_track_master": {
-      "title": "Modular Tank Track Master",
-      "icon": "⚡",
-      "img": "assets/tank_track_master.png",
-      "category": "Input",
-      "text": "<b>Суть:</b> Мозг модульных гусениц.<br><b>Логика:</b> Требует 2 сигнала."
-    },
-    "seat_input_converter": {
-      "title": "Seat Input Converter",
-      "icon": "⚡",
-      "img": "assets/seat_input_converter.png",
+    "radio": {
+      "title": "Радио",
+      "icon": "📻",
+      "img": "assets/radio.png",
       "category": "Output",
-      "text": "<b>Суть:</b> Превращает нажатия WASD в логические сигналы."
+      "text": "Только хиты, круглосуточно. Эти боты-звери захватили эфир и транслируют классику своего весьма специфического музыкального вкуса. Активируется взаимодействием (E) или подключением к триггеру."
     },
-    "math_block": {
-      "title": "Math Block (The Modpack)",
-      "icon": "∑",
-      "img": "assets/math_block.png",
-      "category": "Hidden",
-      "text": "⚠️ <b>Только в The Modpack!</b><br>В чистом Fant Mod отсутствует. Используется для сложных вычислений."
+    "totebot_head": {
+      "title": "Голова Тотбота",
+      "icon": "🔊",
+      "img": "assets/totebot_head.png",
+      "category": "Output",
+      "text": "Голова этого робота сломана, но звуковой генератор внутри всё ещё работает. Творческие механики наверняка найдут способ создавать с её помощью музыку."
+    },
+    "explosive_canister": {
+      "title": "Взрывчатка",
+      "icon": "💥",
+      "img": "assets/explosive_canister.png",
+      "category": "Output",
+      "text": "Взрывоопасная канистра, которая может детонировать от сильного столкновения или выстрела картофельной пушки."
     }
+  },
+  "blocks": {
+    "gas_engine": { "name": "Бенз. Двигатель", "icon": "⛽", "type": "output", "slot": 4, "img": "assets/gas_engine.png" },
+    "electric_engine": { "name": "Электродвигатель", "icon": "🔋", "type": "output", "slot": 4, "img": "assets/electric_engine.png" },
+    "piston": { "name": "Поршень", "icon": "↕️", "type": "output", "slot": 4, "img": "assets/piston.png" },
+    "bearing": { "name": "Подшипник", "icon": "⚙️", "type": "output", "slot": 4, "img": "assets/bearing.png" },
+    "drivers_seat": { "name": "Сиденье Водителя", "icon": "💺", "type": "input", "slot": 0, "img": "assets/drivers_seat.png" },
+    "radio": { "name": "Радио", "icon": "📻", "type": "output", "slot": 4, "img": "assets/radio.png" },
+    "sensor": { "name": "Сенсор", "icon": "👁️", "type": "input", "slot": 0, "img": "assets/sensor.png" },
+    "button": { "name": "Кнопка", "icon": "🔴", "type": "input", "slot": 0, "img": "assets/button.png" },
+    "switch": { "name": "Переключатель", "icon": "🔌", "type": "input", "slot": 0, "img": "assets/switch.png" },
+    "logic_gate": { "name": "Логический Гейт", "icon": "⚡", "type": "logic", "slot": 2, "img": "assets/logic.png" },
+    "timer": { "name": "Таймер", "icon": "⏱️", "type": "util", "slot": 3, "img": "assets/timer.png" },
+    "thruster": { "name": "Трастер", "icon": "🚀", "type": "output", "slot": 4, "img": "assets/thruster.png" },
+    "xor": { "name": "Гейт XOR", "icon": "🔵", "type": "logic", "slot": 2, "img": "assets/logic.png" },
+    "door": { "name": "Контроллер", "icon": "🚪", "type": "output", "slot": 4, "img": "assets/controller.png" }
   }
-};
+}
