@@ -233,3 +233,112 @@
             let icon = b.img ? `<img src="${b.img}" class="w-6 h-6 object-contain" onerror="this.style.display='none';this.nextElementSibling.style.display='block'"><span class="text-lg hidden">${b.icon}</span>` : `<span class="text-lg">${b.icon}</span>`;
             btn.innerHTML = `${icon}<div class="flex-1 min-w-0"><div class="text-xs font-bold text-gray-300 truncate group-hover:text-white">${b.name}</div>${hasPreset ? '<div class="text-[9px] text-orange-500">Есть схемы</div>' : ''}</div>`;
             list.appendChild(btn);
+        });
+    }
+
+    function closeDrawer() {
+        document.getElementById('blockDrawer').classList.add('hidden');
+        document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+        currentCategory = null;
+    }
+    function closeDrawerMobile() { if(window.innerWidth < 1024) closeDrawer(); }
+
+    // --- CANVAS & PRESETS ---
+    function showPresets(targetKey) {
+        const canvas = document.getElementById('canvas');
+        const presets = library.presets[targetKey];
+        resetView();
+        document.getElementById('topPanel').classList.add('hidden');
+        document.getElementById('connectionsList').innerHTML = '';
+        if(window.innerWidth < 1024) document.getElementById('connectionsPanel').classList.add('translate-y-full');
+
+        if (!presets) return;
+        if (presets.length === 1) { loadPreset(targetKey, 0); return; }
+
+        canvas.innerHTML = '';
+        presets.forEach((p, idx) => {
+            canvas.innerHTML += `<button onclick="loadPreset('${targetKey}', ${idx})" class="p-4 bg-[#222] border border-[#444] rounded hover:border-orange-500 text-gray-200 pointer-events-auto transition hover:scale-105 shadow-lg">${p.name}</button>`;
+        });
+    }
+
+    function loadPreset(targetKey, idx) {
+        const preset = library.presets[targetKey][idx];
+        document.getElementById('infoTitle').innerText = preset.name;
+        document.getElementById('infoDesc').innerHTML = preset.desc || "";
+        document.getElementById('topPanel').classList.remove('hidden');
+
+        const canvas = document.getElementById('canvas'); canvas.innerHTML = '';
+        let chainObjects = [];
+        if (preset.chain) {
+            preset.chain.forEach((key, i) => {
+                let b = library.blocks[key] || { name: "UNKNOWN", icon: "?", type: "hidden" };
+                chainObjects.push({ ...b, key: key, idx: i + 1 });
+            });
+        }
+
+        chainObjects.forEach(b => {
+            const el = document.createElement('div');
+            el.className = 'node-wrapper animate-[popIn_0.2s_ease-out]';
+            const hasWiki = library.wiki[b.key];
+            const click = hasWiki ? `onclick="openWikiKey('${b.key}')"` : '';
+            const cursorClass = hasWiki ? 'cursor-help' : '';
+            let content = b.img ? `<img src="${b.img}" class="img-layer" onerror="this.style.display='none';this.nextElementSibling.style.display='block'"><div class="emoji-layer hidden">${b.icon}</div>` : `<div class="emoji-layer">${b.icon}</div>`;
+
+            el.innerHTML = `<div class="sm-block type-${b.type} ${cursorClass}" ${click} id="block-${b.idx}"><div class="block-idx">${b.idx}</div><div class="icon-container">${content}</div><div class="sm-block-title">${b.name}</div></div>`;
+            canvas.appendChild(el);
+        });
+
+        const connList = document.getElementById('connectionsList');
+        if(preset.connections) {
+            connList.innerHTML = preset.connections.map(text => {
+                // Интерактивные ссылки [1]
+                let interactiveText = text.replace(/\[(\d+)\]/g, (match, id) => 
+                    `<span class="text-orange-400 font-bold cursor-pointer hover:underline" onmouseenter="window.hi(${id})" onmouseleave="window.lo(${id})">[${id}]</span>`
+                );
+                return `<div class="p-2 bg-[#222] rounded border-l-2 border-orange-500 hover:bg-[#2a2a2a] transition text-xs">${interactiveText}</div>`;
+            }).join('');
+        }
+        if(window.innerWidth < 1024) toggleInspector(true);
+    }
+
+    // --- HIGHLIGHT & ZOOM ---
+    window.hi = function(id) { const el = document.getElementById(`block-${id}`); if(el) { el.classList.add('active-highlight'); el.style.transform = "scale(1.2)"; el.style.zIndex = "100"; } }
+    window.lo = function(id) { const el = document.getElementById(`block-${id}`); if(el) { el.classList.remove('active-highlight'); el.style.transform = "scale(1)"; el.style.zIndex = "10"; } }
+
+    let scale = 1, pointX = 0, pointY = 0, isDragging = false, startX, startY;
+    const viewport = document.getElementById('viewport');
+    const container = document.getElementById('canvas-container');
+
+    viewport.addEventListener('mousedown', e => { isDragging = true; startX = e.clientX - pointX; startY = e.clientY - pointY; });
+    window.addEventListener('mousemove', e => { if(!isDragging) return; e.preventDefault(); pointX = e.clientX - startX; pointY = e.clientY - startY; updateTransform(); });
+    window.addEventListener('mouseup', () => isDragging = false);
+    viewport.addEventListener('wheel', e => { e.preventDefault(); scale += e.deltaY > 0 ? -0.1 : 0.1; scale = Math.min(Math.max(0.2, scale), 3); updateTransform(); });
+    
+    viewport.addEventListener('touchstart', e => { if(e.touches.length===1) { isDragging=true; startX=e.touches[0].clientX-pointX; startY=e.touches[0].clientY-pointY; } });
+    viewport.addEventListener('touchmove', e => { if(isDragging && e.touches.length===1) { e.preventDefault(); pointX=e.touches[0].clientX-startX; pointY=e.touches[0].clientY-startY; updateTransform(); } });
+    viewport.addEventListener('touchend', () => isDragging=false);
+
+    function updateTransform() { container.style.transform = `translate(${pointX}px, ${pointY}px) scale(${scale})`; }
+    window.resetView = function() { scale = 1; pointX = 0; pointY = 0; updateTransform(); }
+
+    // --- MODALS & UTIL ---
+    window.openWiki = () => { renderWiki(); document.getElementById('wikiModal').classList.remove('hidden'); }
+    window.openWikiKey = (key) => { openWiki(); setTimeout(() => document.getElementById(`wiki-${key}`)?.scrollIntoView({block:'center'}), 100); }
+    window.closeWiki = () => document.getElementById('wikiModal').classList.add('hidden');
+    window.openAdmin = () => document.getElementById('adminModal').classList.remove('hidden');
+    window.closeAdmin = () => document.getElementById('adminModal').classList.add('hidden');
+    
+    window.copyKeys = () => { navigator.clipboard.writeText(Object.keys(library.blocks).join(', ')); document.getElementById('adminLog').innerText = "Скопировано!"; }
+    window.toggleInspector = (forceOpen) => {
+        const panel = document.getElementById('connectionsPanel');
+        if (forceOpen === true) panel.classList.remove('translate-y-full');
+        else if (forceOpen === false) panel.classList.add('translate-y-full');
+        else panel.classList.toggle('translate-y-full');
+    }
+    window.universalMerge = () => { alert("Используйте GitHub для редактирования файлов blocks.js / presets.js"); }
+    window.downloadDB = () => { alert("Используйте GitHub."); }
+
+    init();
+</script>
+</body>
+</html>
