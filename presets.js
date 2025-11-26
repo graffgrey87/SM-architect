@@ -9,7 +9,7 @@ window.SM_PRESETS = {
   ],
   "thruster": [
     {
-      "name": "Стабилизация (Vanilla)",
+      "name": "Стабилизация1 (Vanilla)",
       "desc": "Классическая стабилизация. Требует настройки Logic Gate в режим Math.",
       "chain": ["fant_angle_sensor", "logic_gate", "thruster"],
       "connections": ["[1] Angle Sensor -> [2] Logic Gate (Math Mode)", "[2] Logic Gate -> [3] Thruster"]
