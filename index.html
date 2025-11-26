@@ -3,16 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SM Architect v4.9 (Fit Fix)</title>
+    <title>SM Architect v5.0 (Final)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Segoe+UI:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
-        body { background-color: #0f0f0f; color: #e5e5e5; font-family: 'Segoe UI', sans-serif; overflow: hidden; touch-action: none; }
-        #viewport { flex: 1; position: relative; background-color: #121212; cursor: grab; width: 100%; height: 100%; overflow: hidden; }
+        /* База */
+        body { background-color: #0f0f0f; color: #e5e5e5; font-family: 'Segoe UI', sans-serif; overflow: hidden; touch-action: none; user-select: none; -webkit-user-select: none; }
+        #wikiModal, #adminModal { user-select: text; -webkit-user-select: text; }
+        
+        /* Холст */
+        #viewport { flex: 1; position: relative; background-color: #121212; cursor: grab; width: 100%; height: 100%; overflow: hidden; display: flex; align-items: center; justify-content: center; }
         #viewport:active { cursor: grabbing; }
-        #canvas-container { transition: transform 0.2s cubic-bezier(0.2, 0.8, 0.2, 1); transform-origin: 0 0; } /* Origin 0 0 для точного контроля */
+        #canvas-container { transition: transform 0.1s cubic-bezier(0.1, 0.7, 0.1, 1); transform-origin: 0 0; } 
         .bg-grid { position: absolute; inset: -500%; z-index: 0; background-image: radial-gradient(#333 1px, transparent 1px); background-size: 20px 20px; opacity: 0.4; pointer-events: none; }
 
+        /* Блоки */
         .sm-block {
             width: 100px; height: 100px; 
             background: radial-gradient(circle at top left, #2a2a2a, #161616);
@@ -23,30 +28,36 @@
             pointer-events: auto; transition: border-color 0.2s;
         }
         .icon-container { flex-grow: 1; display: flex; align-items: center; justify-content: center; padding: 4px; width: 100%; overflow: hidden; }
-        .img-layer { max-width: 100%; max-height: 100%; object-fit: contain; filter: drop-shadow(0 2px 2px rgba(0,0,0,0.5)); }
-        .emoji-layer { font-size: 36px; }
+        .img-layer { max-width: 100%; max-height: 100%; object-fit: contain; filter: drop-shadow(0 2px 2px rgba(0,0,0,0.5)); pointer-events: none; }
+        .emoji-layer { font-size: 36px; pointer-events: none; }
         .sm-block-title { 
             width: 100%; background: rgba(0,0,0,0.8); border-top: 1px solid rgba(255,255,255,0.1);
             font-size: 10px; font-weight: bold; text-transform: uppercase; color: #ccc; text-align: center; 
-            padding: 4px 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex-shrink: 0;
+            padding: 4px 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex-shrink: 0; pointer-events: none;
         }
         .block-idx { 
             position: absolute; top: -8px; left: -8px; background: #333; color: #fff; 
             width: 22px; height: 22px; border-radius: 50%; border: 1px solid #666; 
             font-family: monospace; font-size: 11px; font-weight: bold; 
-            display: flex; align-items: center; justify-content: center; z-index: 20; box-shadow: 0 2px 4px rgba(0,0,0,0.5);
+            display: flex; align-items: center; justify-content: center; z-index: 20; box-shadow: 0 2px 4px rgba(0,0,0,0.5); pointer-events: none;
         }
+
+        /* Типы и Подсветка */
         .type-input { border-color: #22c55e; } .type-logic { border-color: #a855f7; } .type-math { border-color: #f97316; } .type-output { border-color: #ef4444; } .type-util { border-color: #3b82f6; } .type-hidden { opacity: 0.5; border-style: dashed; border-color: #444; }
         .sm-block.active-highlight { border-color: #fb923c !important; box-shadow: 0 0 0 6px rgba(251, 146, 60, 0.4), 0 20px 40px rgba(0,0,0,0.9) !important; transform: scale(1.2); z-index: 100 !important; background: #222 !important; }
 
-        .nav-item { width: 100%; height: 56px; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #888; cursor: pointer; transition: all 0.2s; border-left: 3px solid transparent; flex-shrink: 0; }
+        /* Меню */
+        .nav-item { 
+            width: 100%; height: 56px; display: flex; flex-direction: column; align-items: center; justify-content: center;
+            color: #888; cursor: pointer; transition: all 0.2s; border-left: 3px solid transparent; flex-shrink: 0;
+        }
         .nav-item:hover { background: #222; color: #fff; }
         .nav-item.active { color: #fb923c; border-left-color: #fb923c; background: #1a1a1a; }
         .nav-label { font-size: 0.6rem; font-weight: bold; text-transform: uppercase; margin-top: 2px; }
         
-        ::-webkit-scrollbar { width: 6px; height: 6px; } 
-        ::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
-        ::-webkit-scrollbar-thumb:hover { background: #555; }
+        /* Скроллбар */
+        ::-webkit-scrollbar { width: 4px; height: 4px; } 
+        ::-webkit-scrollbar-thumb { background: #444; border-radius: 2px; }
         ::-webkit-scrollbar-track { background: #0a0a0a; }
         
         @keyframes slideIn { from { transform: translateX(-100%); } to { transform: translateX(0); } }
@@ -57,11 +68,11 @@
 
     <nav class="w-16 lg:w-20 bg-[#0a0a0a] border-r border-[#222] flex flex-col items-center py-2 z-40 shadow-xl shrink-0 h-full">
         <button onclick="clearScreen()" class="nav-item mb-1 text-orange-500 hover:text-orange-400" title="Домой"><span class="text-2xl">🏠</span></button>
-        <div class="flex-1 min-h-0 w-full overflow-y-auto flex flex-col items-center gap-1 py-2">
-            <button onclick="filterCategory('input')" class="nav-item" id="nav-input"><img src="assets/icon_input.png" class="w-8 h-8 object-contain opacity-70 hover:opacity-100" onerror="this.style.display='none'; this.nextElementSibling.style.display='block'"><span class="text-2xl hidden">🎮</span><span class="nav-label">Ввод</span></button>
-            <button onclick="filterCategory('logic')" class="nav-item" id="nav-logic"><img src="assets/icon_logic.png" class="w-8 h-8 object-contain opacity-70 hover:opacity-100" onerror="this.style.display='none'; this.nextElementSibling.style.display='block'"><span class="text-2xl hidden">🧠</span><span class="nav-label">Логика</span></button>
-            <button onclick="filterCategory('output')" class="nav-item" id="nav-output"><img src="assets/icon_output.png" class="w-8 h-8 object-contain opacity-70 hover:opacity-100" onerror="this.style.display='none'; this.nextElementSibling.style.display='block'"><span class="text-2xl hidden">⚙️</span><span class="nav-label">Мех.</span></button>
-            <button onclick="filterCategory('util')" class="nav-item" id="nav-util"><img src="assets/icon_util.png" class="w-8 h-8 object-contain opacity-70 hover:opacity-100" onerror="this.style.display='none'; this.nextElementSibling.style.display='block'"><span class="text-2xl hidden">🧰</span><span class="nav-label">Утил.</span></button>
+        <div class="flex-1 min-h-0 w-full overflow-y-auto flex flex-col items-center gap-1 py-2 no-scrollbar">
+            <button onclick="filterCategory('input')" class="nav-item" id="nav-input"><img src="assets/icon_input.png" class="w-8 h-8 object-contain opacity-70 hover:opacity-100 transition-opacity" onerror="this.style.display='none'; this.nextElementSibling.style.display='block'"><span class="text-2xl hidden">🎮</span><span class="nav-label">Ввод</span></button>
+            <button onclick="filterCategory('logic')" class="nav-item" id="nav-logic"><img src="assets/icon_logic.png" class="w-8 h-8 object-contain opacity-70 hover:opacity-100 transition-opacity" onerror="this.style.display='none'; this.nextElementSibling.style.display='block'"><span class="text-2xl hidden">🧠</span><span class="nav-label">Логика</span></button>
+            <button onclick="filterCategory('output')" class="nav-item" id="nav-output"><img src="assets/icon_output.png" class="w-8 h-8 object-contain opacity-70 hover:opacity-100 transition-opacity" onerror="this.style.display='none'; this.nextElementSibling.style.display='block'"><span class="text-2xl hidden">⚙️</span><span class="nav-label">Мех.</span></button>
+            <button onclick="filterCategory('util')" class="nav-item" id="nav-util"><img src="assets/icon_util.png" class="w-8 h-8 object-contain opacity-70 hover:opacity-100 transition-opacity" onerror="this.style.display='none'; this.nextElementSibling.style.display='block'"><span class="text-2xl hidden">🧰</span><span class="nav-label">Утил.</span></button>
         </div>
         <div class="w-full border-t border-[#222] pt-2 mt-auto bg-[#0a0a0a] shrink-0 pb-safe">
             <button onclick="autoFitView()" class="nav-item" title="Авто-масштаб"><span class="text-xl">🎯</span></button>
@@ -94,8 +105,7 @@
 
     <div id="wikiModal" class="fixed inset-0 bg-black/90 hidden z-[100] flex items-center justify-center p-4 backdrop-blur-sm" onclick="if(event.target===this)closeWiki()"><div class="bg-[#1a1a1a] w-full max-w-4xl h-[85vh] rounded-2xl border border-[#333] flex flex-col shadow-2xl"><div class="p-4 border-b border-[#333] flex justify-between items-center"><h2 class="text-2xl font-bold text-orange-500">📚 Wiki</h2><button onclick="closeWiki()" class="text-3xl text-gray-500 hover:text-white p-2">&times;</button></div><div class="p-8 overflow-y-auto space-y-8 text-gray-300" id="wikiContent"></div></div></div>
     <div id="adminModal" class="fixed inset-0 bg-black/95 hidden z-[110] flex items-center justify-center p-4 backdrop-blur-md" onclick="if(event.target===this)closeAdmin()"><div class="bg-[#1a1a1a] w-full max-w-3xl rounded-xl border border-[#333] flex flex-col shadow-2xl max-h-[90vh]"><div class="p-5 border-b border-[#333] flex justify-between items-center"><h2 class="text-xl font-bold text-blue-400">⚙️ Admin</h2><button onclick="closeAdmin()" class="text-gray-500 hover:text-white p-2">✕</button></div><div class="p-6 overflow-y-auto flex-1 space-y-4"><textarea id="universalImport" class="w-full h-60 bg-[#0a0a0a] border border-[#333] rounded p-4 text-sm font-mono text-green-400 focus:border-blue-500 outline-none" placeholder="JSON..."></textarea><div class="flex gap-3 pt-2"><button onclick="copyKeys()" class="px-4 py-3 bg-[#222] text-gray-300 rounded border border-[#333] hover:text-white text-sm font-bold flex-1">📋 Keys</button><button onclick="universalMerge()" class="px-4 py-3 bg-blue-900/30 text-blue-300 rounded border border-blue-800 hover:bg-blue-800 hover:text-white text-sm font-bold flex-1">Import</button></div></div></div></div>
-
-<script src="blocks.js"></script>
+    <script src="blocks.js"></script>
 <script src="wiki.js"></script>
 <script src="presets.js"></script>
 
@@ -105,7 +115,7 @@
     const viewport = document.getElementById('viewport'), container = document.getElementById('canvas-container');
     const categoryMap = { 'input': ['input', 'sensor'], 'logic': ['logic', 'math'], 'output': ['output'], 'util': ['util'] };
 
-    function init() { setupZoomPan(); console.log("✅ v4.9 FitFix"); }
+    function init() { setupZoomPan(); console.log("✅ v5.0 Final"); }
 
     // NAV
     window.clearScreen = () => { 
@@ -151,7 +161,7 @@
         if (presets.length === 1) { loadPreset(targetKey, 0); return; }
         canvas.innerHTML = '';
         presets.forEach((p, idx) => { canvas.innerHTML += `<button onclick="loadPreset('${targetKey}', ${idx})" class="p-6 bg-[#222] border border-[#444] rounded hover:border-orange-500 text-gray-200 pointer-events-auto transition hover:scale-105 shadow-xl text-lg font-bold">${p.name}</button>`; });
-        setTimeout(autoFitView, 50); // Fit after render
+        setTimeout(autoFitView, 50); 
     }
 
     window.loadPreset = (targetKey, idx) => {
@@ -178,28 +188,20 @@
             }).join('');
         }
         
-        setTimeout(autoFitView, 50); // Fit logic
+        setTimeout(autoFitView, 50); 
         if(window.innerWidth < 1024) window.toggleInspector(true);
     }
 
     // SMART AUTO-FIT (FIXED)
     window.autoFitView = () => {
         const blocks = document.querySelectorAll('.sm-block');
-        if (blocks.length === 0) return;
+        if (blocks.length === 0) { scale = 1; pointX = 0; pointY = 0; updateTransform(); return; }
 
         requestAnimationFrame(() => {
             let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
             blocks.forEach(b => {
-                // Получаем координаты относительно контейнера
-                const x = b.offsetLeft;
-                const y = b.offsetTop;
-                const w = b.offsetWidth;
-                const h = b.offsetHeight;
-                
-                if (x < minX) minX = x;
-                if (y < minY) minY = y;
-                if (x + w > maxX) maxX = x + w;
-                if (y + h > maxY) maxY = y + h;
+                const x = b.offsetLeft; const y = b.offsetTop; const w = b.offsetWidth; const h = b.offsetHeight;
+                if (x < minX) minX = x; if (y < minY) minY = y; if (x + w > maxX) maxX = x + w; if (y + h > maxY) maxY = y + h;
             });
 
             const contentW = maxX - minX;
@@ -209,16 +211,12 @@
 
             const vpW = viewport.offsetWidth;
             const vpH = viewport.offsetHeight;
-            const padding = 100; // Больше отступ для мобилок
+            const padding = window.innerWidth < 1024 ? 60 : 100;
 
-            const scaleX = (vpW - padding) / contentW;
-            const scaleY = (vpH - padding) / contentH;
-            let targetScale = Math.min(scaleX, scaleY);
-            targetScale = Math.min(Math.max(targetScale, 0.3), 1.2); 
+            let targetScale = Math.min((vpW - padding) / contentW, (vpH - padding) / contentH);
+            targetScale = Math.min(Math.max(targetScale, 0.3), 1.2);
 
             scale = targetScale;
-            
-            // Центрирование: Сдвигаем холст так, чтобы центр контента совпал с центром экрана
             pointX = (vpW / 2) - (contentCenterX * scale);
             pointY = (vpH / 2) - (contentCenterY * scale);
 
@@ -230,15 +228,52 @@
     window.hi = (id) => { const el = document.getElementById(`block-${id}`); if(el) el.classList.add('active-highlight'); }
     window.lo = (id) => { const el = document.getElementById(`block-${id}`); if(el) el.classList.remove('active-highlight'); }
 
+    window.resetView = () => window.autoFitView();
+
     function updateTransform() { container.style.transform = `translate(${pointX}px, ${pointY}px) scale(${scale})`; }
     
     function setupZoomPan() {
+        // Mouse
         viewport.addEventListener('mousedown', e => { isDragging = true; startX = e.clientX - pointX; startY = e.clientY - pointY; });
         window.addEventListener('mousemove', e => { if(!isDragging) return; e.preventDefault(); pointX = e.clientX - startX; pointY = e.clientY - startY; updateTransform(); });
         window.addEventListener('mouseup', () => isDragging = false);
-        viewport.addEventListener('wheel', e => { e.preventDefault(); scale += e.deltaY > 0 ? -0.1 : 0.1; scale = Math.min(Math.max(0.2, scale), 3); updateTransform(); });
-        viewport.addEventListener('touchstart', e => { if(e.touches.length === 1) { isDragging=true; startX=e.touches[0].clientX-pointX; startY=e.touches[0].clientY-pointY; } if(e.touches.length === 2) { lastTouchDist = getTouchDist(e); } });
-        viewport.addEventListener('touchmove', e => { e.preventDefault(); if(isDragging && e.touches.length === 1) { pointX=e.touches[0].clientX-startX; pointY=e.touches[0].clientY-startY; updateTransform(); } if(e.touches.length === 2) { const dist = getTouchDist(e); if(lastTouchDist) { const delta = dist / lastTouchDist; scale = Math.min(Math.max(0.2, scale * delta), 3); updateTransform(); } lastTouchDist = dist; } });
+        viewport.addEventListener('wheel', e => { e.preventDefault(); 
+            const zoomSpeed = 0.1;
+            const mouseX = e.clientX - viewport.getBoundingClientRect().left;
+            const mouseY = e.clientY - viewport.getBoundingClientRect().top;
+            const newScale = e.deltaY > 0 ? scale - zoomSpeed : scale + zoomSpeed;
+            const limitedScale = Math.min(Math.max(0.2, newScale), 3);
+            const ratio = limitedScale / scale;
+            pointX = mouseX - (mouseX - pointX) * ratio;
+            pointY = mouseY - (mouseY - pointY) * ratio;
+            scale = limitedScale;
+            updateTransform(); 
+        });
+        
+        // Touch
+        viewport.addEventListener('touchstart', e => {
+            if(e.touches.length === 1) { isDragging=true; startX=e.touches[0].clientX-pointX; startY=e.touches[0].clientY-pointY; }
+            if(e.touches.length === 2) { isDragging=false; lastTouchDist = getTouchDist(e); }
+        });
+        viewport.addEventListener('touchmove', e => {
+            e.preventDefault();
+            if(isDragging && e.touches.length === 1) { pointX=e.touches[0].clientX-startX; pointY=e.touches[0].clientY-startY; updateTransform(); }
+            if(e.touches.length === 2) {
+                const dist = getTouchDist(e);
+                if(lastTouchDist) {
+                    const delta = dist / lastTouchDist;
+                    const newScale = Math.min(Math.max(0.2, scale * delta), 3);
+                    const centerX = (e.touches[0].clientX + e.touches[1].clientX) / 2;
+                    const centerY = (e.touches[0].clientY + e.touches[1].clientY) / 2;
+                    const ratio = newScale / scale;
+                    pointX = centerX - (centerX - pointX) * ratio;
+                    pointY = centerY - (centerY - pointY) * ratio;
+                    scale = newScale;
+                    updateTransform();
+                }
+                lastTouchDist = dist;
+            }
+        });
         viewport.addEventListener('touchend', () => { isDragging=false; lastTouchDist=0; });
     }
     function getTouchDist(e) { return Math.hypot(e.touches[0].pageX - e.touches[1].pageX, e.touches[0].pageY - e.touches[1].pageY); }
