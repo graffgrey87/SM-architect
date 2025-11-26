@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SM Architect v4.6 (Mobile Final)</title>
+    <title>SM Architect v4.7 (PC Fixes)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Segoe+UI:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
@@ -29,6 +29,7 @@
         .icon-container { flex-grow: 1; display: flex; align-items: center; justify-content: center; padding: 4px; width: 100%; overflow: hidden; }
         .img-layer { max-width: 100%; max-height: 100%; object-fit: contain; filter: drop-shadow(0 2px 2px rgba(0,0,0,0.5)); }
         .emoji-layer { font-size: 36px; }
+        
         .sm-block-title { 
             width: 100%; background: rgba(0,0,0,0.8); border-top: 1px solid rgba(255,255,255,0.1);
             font-size: 10px; font-weight: bold; text-transform: uppercase; color: #ccc; text-align: center; 
@@ -45,7 +46,7 @@
         .type-input { border-color: #22c55e; } .type-logic { border-color: #a855f7; } .type-math { border-color: #f97316; } .type-output { border-color: #ef4444; } .type-util { border-color: #3b82f6; } .type-hidden { opacity: 0.5; border-style: dashed; border-color: #444; }
         .sm-block.active-highlight { border-color: #fb923c !important; box-shadow: 0 0 0 6px rgba(251, 146, 60, 0.4), 0 20px 40px rgba(0,0,0,0.9) !important; transform: scale(1.2); z-index: 100 !important; background: #222 !important; }
 
-        /* Меню и Навигация */
+        /* Меню */
         .nav-item { 
             width: 100%; height: 56px; display: flex; flex-direction: column; align-items: center; justify-content: center;
             color: #888; cursor: pointer; transition: all 0.2s; border-left: 3px solid transparent; flex-shrink: 0;
@@ -54,10 +55,11 @@
         .nav-item.active { color: #fb923c; border-left-color: #fb923c; background: #1a1a1a; }
         .nav-label { font-size: 0.6rem; font-weight: bold; text-transform: uppercase; margin-top: 2px; }
         
-        /* Кастомный скроллбар (Тонкий и темный) */
-        ::-webkit-scrollbar { width: 4px; } 
-        ::-webkit-scrollbar-thumb { background: #444; border-radius: 2px; }
-        ::-webkit-scrollbar-track { background: transparent; }
+        /* Темный Скроллбар */
+        ::-webkit-scrollbar { width: 6px; height: 6px; } 
+        ::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #555; }
+        ::-webkit-scrollbar-track { background: #0a0a0a; }
 
         @keyframes slideIn { from { transform: translateX(-100%); } to { transform: translateX(0); } }
         .drawer-enter { animation: slideIn 0.2s ease-out forwards; }
@@ -66,29 +68,13 @@
 <body class="flex h-dvh text-base bg-[#0f0f0f] overflow-hidden">
 
     <nav class="w-16 lg:w-20 bg-[#0a0a0a] border-r border-[#222] flex flex-col items-center py-2 z-40 shadow-xl shrink-0 h-full">
-        <button onclick="clearScreen()" class="nav-item mb-1 text-orange-500 hover:text-orange-400" title="Домой">
-            <span class="text-2xl">🏠</span>
-        </button>
-        
+        <button onclick="clearScreen()" class="nav-item mb-1 text-orange-500 hover:text-orange-400" title="Домой"><span class="text-2xl">🏠</span></button>
         <div class="flex-1 min-h-0 w-full overflow-y-auto flex flex-col items-center gap-1 py-2">
-            <button onclick="filterCategory('input')" class="nav-item" id="nav-input">
-                <img src="assets/icon_input.png" class="w-8 h-8 object-contain opacity-70 hover:opacity-100" onerror="this.style.display='none'; this.nextElementSibling.style.display='block'"><span class="text-2xl hidden">🎮</span>
-                <span class="nav-label">Ввод</span>
-            </button>
-            <button onclick="filterCategory('logic')" class="nav-item" id="nav-logic">
-                <img src="assets/icon_logic.png" class="w-8 h-8 object-contain opacity-70 hover:opacity-100" onerror="this.style.display='none'; this.nextElementSibling.style.display='block'"><span class="text-2xl hidden">🧠</span>
-                <span class="nav-label">Логика</span>
-            </button>
-            <button onclick="filterCategory('output')" class="nav-item" id="nav-output">
-                <img src="assets/icon_output.png" class="w-8 h-8 object-contain opacity-70 hover:opacity-100" onerror="this.style.display='none'; this.nextElementSibling.style.display='block'"><span class="text-2xl hidden">⚙️</span>
-                <span class="nav-label">Мех.</span>
-            </button>
-            <button onclick="filterCategory('util')" class="nav-item" id="nav-util">
-                <img src="assets/icon_util.png" class="w-8 h-8 object-contain opacity-70 hover:opacity-100" onerror="this.style.display='none'; this.nextElementSibling.style.display='block'"><span class="text-2xl hidden">🧰</span>
-                <span class="nav-label">Утил.</span>
-            </button>
+            <button onclick="filterCategory('input')" class="nav-item" id="nav-input"><img src="assets/icon_input.png" class="w-8 h-8 object-contain opacity-70 hover:opacity-100" onerror="this.style.display='none'; this.nextElementSibling.style.display='block'"><span class="text-2xl hidden">🎮</span><span class="nav-label">Ввод</span></button>
+            <button onclick="filterCategory('logic')" class="nav-item" id="nav-logic"><img src="assets/icon_logic.png" class="w-8 h-8 object-contain opacity-70 hover:opacity-100" onerror="this.style.display='none'; this.nextElementSibling.style.display='block'"><span class="text-2xl hidden">🧠</span><span class="nav-label">Логика</span></button>
+            <button onclick="filterCategory('output')" class="nav-item" id="nav-output"><img src="assets/icon_output.png" class="w-8 h-8 object-contain opacity-70 hover:opacity-100" onerror="this.style.display='none'; this.nextElementSibling.style.display='block'"><span class="text-2xl hidden">⚙️</span><span class="nav-label">Мех.</span></button>
+            <button onclick="filterCategory('util')" class="nav-item" id="nav-util"><img src="assets/icon_util.png" class="w-8 h-8 object-contain opacity-70 hover:opacity-100" onerror="this.style.display='none'; this.nextElementSibling.style.display='block'"><span class="text-2xl hidden">🧰</span><span class="nav-label">Утил.</span></button>
         </div>
-
         <div class="w-full border-t border-[#222] pt-2 mt-auto bg-[#0a0a0a] shrink-0 pb-safe">
             <button onclick="resetView()" class="nav-item" title="Сброс"><span class="text-xl">🎯</span></button>
             <button onclick="openWiki()" class="nav-item" title="Вики"><span class="text-xl">📖</span></button>
@@ -97,13 +83,8 @@
     </nav>
 
     <aside id="blockDrawer" class="absolute left-16 lg:left-20 top-0 bottom-0 w-64 bg-[#141414] border-r border-[#222] flex flex-col z-30 drawer-enter hidden shadow-2xl h-full">
-        <div class="p-4 border-b border-[#222] flex justify-between items-center bg-[#1a1a1a] shrink-0">
-            <h2 id="drawerTitle" class="font-bold text-gray-200 text-sm uppercase tracking-wider">Блоки</h2>
-            <button onclick="closeDrawer()" class="text-gray-500 hover:text-white p-2 text-lg">✕</button>
-        </div>
-        <div class="p-3 border-b border-[#222] shrink-0">
-            <input type="text" id="searchBox" placeholder="Поиск..." class="w-full bg-[#0a0a0a] border border-[#333] rounded px-3 py-2 text-sm text-white focus:border-orange-500 outline-none" onkeyup="searchBlocks()">
-        </div>
+        <div class="p-4 border-b border-[#222] flex justify-between items-center bg-[#1a1a1a] shrink-0"><h2 id="drawerTitle" class="font-bold text-gray-200 text-sm uppercase tracking-wider">Блоки</h2><button onclick="closeDrawer()" class="text-gray-500 hover:text-white p-2 text-lg">✕</button></div>
+        <div class="p-3 border-b border-[#222] shrink-0"><input type="text" id="searchBox" placeholder="Поиск..." class="w-full bg-[#0a0a0a] border border-[#333] rounded px-3 py-2 text-sm text-white focus:border-orange-500 outline-none" onkeyup="searchBlocks()"></div>
         <div id="menuList" class="flex-1 overflow-y-auto p-2 space-y-1 pb-10 min-h-0"></div>
     </aside>
 
@@ -114,15 +95,20 @@
             <div id="canvas-container"><div class="bg-grid"></div><div id="canvas" class="flex flex-wrap gap-12 justify-center w-[1000px] pointer-events-none p-32"><div class="text-gray-600 text-center mt-20 pointer-events-none select-none"><div class="text-6xl mb-4 opacity-20">🛠</div><div class="text-lg">Выберите категорию</div></div></div></div>
         </div>
 
-        <button id="inspectorBtn" onclick="toggleInspector()" class="fixed bottom-8 right-8 w-16 h-16 bg-orange-600 text-white rounded-full shadow-[0_4px_20px_rgba(249,115,22,0.6)] flex items-center justify-center text-3xl font-bold z-30 hover:bg-orange-500 active:scale-90 transition-transform lg:hidden">i</button>
+        <button id="inspectorBtnMobile" onclick="toggleInspector()" class="fixed bottom-8 right-8 w-16 h-16 bg-orange-600 text-white rounded-full shadow-[0_4px_20px_rgba(249,115,22,0.6)] flex items-center justify-center text-3xl font-bold z-30 hover:bg-orange-500 active:scale-90 transition-transform lg:hidden">i</button>
 
-        <div id="connectionsPanel" class="fixed bottom-0 right-0 w-full lg:w-96 bg-[#1a1a1a] border-t lg:border-l border-[#333] z-50 transform translate-y-full lg:translate-y-0 transition-transform duration-300 flex flex-col max-h-[60vh] lg:max-h-full h-auto lg:h-full shadow-[0_-10px_40px_rgba(0,0,0,0.8)] rounded-t-3xl lg:rounded-none">
-            <div class="p-4 border-b border-[#333] bg-[#222] flex justify-between items-center rounded-t-3xl lg:rounded-none cursor-pointer hover:bg-[#2a2a2a] transition" onclick="toggleInspector()"><h3 class="font-bold text-orange-500 text-sm uppercase tracking-widest pl-2">📡 Connections</h3><button class="lg:hidden text-gray-400 px-4 text-xl">▼</button></div>
+        <button id="inspectorBtnPC" onclick="toggleInspector()" class="absolute top-4 right-4 w-10 h-10 bg-[#222] border border-[#444] text-gray-400 rounded hover:text-white hover:border-orange-500 hidden lg:flex items-center justify-center z-40 transition-all" title="Показать/Скрыть панель">▶</button>
+
+        <div id="connectionsPanel" class="fixed bottom-0 right-0 w-full lg:w-96 bg-[#1a1a1a] border-t lg:border-l border-[#333] z-50 transition-transform duration-300 flex flex-col max-h-[60vh] lg:max-h-full h-auto lg:h-full shadow-2xl rounded-t-3xl lg:rounded-none lg:static lg:fixed lg:right-0 lg:top-0 translate-y-full lg:translate-x-full">
+            <div class="p-4 border-b border-[#333] bg-[#222] flex justify-between items-center rounded-t-3xl lg:rounded-none cursor-pointer" onclick="toggleInspector()">
+                <h3 class="font-bold text-orange-500 text-sm uppercase tracking-widest pl-2">📡 Connections</h3>
+                <button class="lg:hidden text-gray-400 px-4 text-xl">▼</button>
+            </div>
             <div id="connectionsList" class="p-5 overflow-y-auto flex-1 space-y-3 text-sm font-mono text-gray-400 min-h-0"><div class="text-center opacity-50 mt-4">Нет активной схемы</div></div>
         </div>
     </main>
 
-    <div id="wikiModal" class="fixed inset-0 bg-black/90 hidden z-[100] flex items-center justify-center p-4 backdrop-blur-sm" onclick="if(event.target===this)closeWiki()"><div class="bg-[#1a1a1a] w-full max-w-4xl h-[85vh] rounded-2xl border border-[#333] flex flex-col shadow-2xl"><div class="p-4 border-b border-[#333] flex justify-between items-center"><h2 class="text-2xl font-bold text-orange-500">📚 Wiki</h2><button onclick="closeWiki()" class="text-3xl text-gray-500 hover:text-white p-2">&times;</button></div><div class="p-8 overflow-y-auto space-y-8 text-gray-300" id="wikiContent"></div></div></div>
+    <div id="wikiModal" class="fixed inset-0 bg-black/90 hidden z-[100] flex items-center justify-center p-4 backdrop-blur-sm" onclick="if(event.target===this)closeWiki()"><div class="bg-[#1a1a1a] w-full max-w-4xl h-[85vh] rounded-2xl border border-[#333] flex flex-col shadow-2xl"><div class="p-5 border-b border-[#333] flex justify-between items-center"><h2 class="text-2xl font-bold text-orange-500">📚 Wiki</h2><button onclick="closeWiki()" class="text-3xl text-gray-500 hover:text-white p-2">&times;</button></div><div class="p-8 overflow-y-auto space-y-8 text-gray-300" id="wikiContent"></div></div></div>
     <div id="adminModal" class="fixed inset-0 bg-black/95 hidden z-[110] flex items-center justify-center p-4 backdrop-blur-md" onclick="if(event.target===this)closeAdmin()"><div class="bg-[#1a1a1a] w-full max-w-3xl rounded-xl border border-[#333] flex flex-col shadow-2xl max-h-[90vh]"><div class="p-5 border-b border-[#333] flex justify-between items-center"><h2 class="text-xl font-bold text-blue-400">⚙️ Admin</h2><button onclick="closeAdmin()" class="text-gray-500 hover:text-white p-2">✕</button></div><div class="p-6 overflow-y-auto flex-1 space-y-4"><textarea id="universalImport" class="w-full h-60 bg-[#0a0a0a] border border-[#333] rounded p-4 text-sm font-mono text-green-400 focus:border-blue-500 outline-none" placeholder="JSON..."></textarea><div class="flex gap-3 pt-2"><button onclick="copyKeys()" class="px-4 py-3 bg-[#222] text-gray-300 rounded border border-[#333] hover:text-white text-sm font-bold flex-1">📋 Keys</button><button onclick="universalMerge()" class="px-4 py-3 bg-blue-900/30 text-blue-300 rounded border border-blue-800 hover:bg-blue-800 hover:text-white text-sm font-bold flex-1">Import</button></div></div></div></div>
 
 <script src="blocks.js"></script>
@@ -134,15 +120,19 @@
     let scale = 1, pointX = 0, pointY = 0, isDragging = false, startX, startY, currentCategory = null, lastTouchDist = 0;
     const viewport = document.getElementById('viewport'), container = document.getElementById('canvas-container');
     const categoryMap = { 'input': ['input', 'sensor'], 'logic': ['logic', 'math'], 'output': ['output'], 'util': ['util'] };
+    
+    // Состояние панели (открыта/закрыта)
+    let isInspectorOpen = false;
 
-    function init() { setupZoomPan(); console.log("✅ v4.6 Mobile Fix"); }
+    function init() { setupZoomPan(); console.log("✅ v4.7 PC Polish"); }
 
+    // NAV
     window.clearScreen = () => { 
         document.getElementById('canvas').innerHTML = '<div class="text-gray-600 text-center mt-20 pointer-events-none select-none"><div class="text-6xl mb-4 opacity-20">🛠</div><div class="text-lg">Выберите категорию</div></div>'; 
         document.getElementById('topPanel').classList.add('hidden'); 
         document.getElementById('connectionsList').innerHTML = '<div class="text-center opacity-50 mt-4">Нет активной схемы</div>'; 
         resetView(); 
-        if(window.innerWidth<1024) toggleInspector(false); 
+        toggleInspector(false);
     }
     
     window.filterCategory = (catName) => {
@@ -170,6 +160,7 @@
     window.closeDrawer = () => { document.getElementById('blockDrawer').classList.add('hidden'); document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active')); currentCategory = null; }
     window.closeDrawerMobile = () => { if(window.innerWidth < 1024) window.closeDrawer(); }
 
+    // CANVAS
     window.showPresets = (targetKey) => {
         const canvas = document.getElementById('canvas');
         const presets = library.presets[targetKey];
@@ -205,29 +196,21 @@
                 return `<div class="p-3 bg-[#222] rounded border-l-2 border-orange-500 mb-2 hover:bg-[#2a2a2a] transition text-sm">${interactiveText}</div>`;
             }).join('');
         }
-        // Auto-center logic
-        setTimeout(() => {
-            const blocks = document.querySelectorAll('.sm-block');
-            if (blocks.length > 0) {
-                const first = blocks[0].getBoundingClientRect();
-                const last = blocks[blocks.length-1].getBoundingClientRect();
-                const centerX = (first.left + last.right) / 2;
-                const centerY = (first.top + last.bottom) / 2;
-                const vpW = viewport.offsetWidth / 2;
-                const vpH = viewport.offsetHeight / 2;
-                pointX = vpW - centerX + pointX; // Adjust
-                pointY = vpH - centerY + pointY;
-                updateTransform();
-            }
-        }, 100);
-        if(window.innerWidth < 1024) window.toggleInspector(true);
+        // Auto-center
+        resetView();
+        toggleInspector(true);
     }
 
     window.highlightBlock = (id) => { if(window.innerWidth < 1024) window.toggleInspector(false); window.hi(id); setTimeout(() => window.lo(id), 2000); }
     window.hi = (id) => { const el = document.getElementById(`block-${id}`); if(el) el.classList.add('active-highlight'); }
     window.lo = (id) => { const el = document.getElementById(`block-${id}`); if(el) el.classList.remove('active-highlight'); }
 
-    window.resetView = () => { scale = 1; pointX = 0; pointY = 0; updateTransform(); }
+    // UPDATED RESET: Real Centering
+    window.resetView = () => { 
+        scale = 1; pointX = 0; pointY = 0; 
+        updateTransform(); 
+    }
+    
     function updateTransform() { container.style.transform = `translate(${pointX}px, ${pointY}px) scale(${scale})`; }
     
     function setupZoomPan() {
@@ -241,18 +224,45 @@
     }
     function getTouchDist(e) { return Math.hypot(e.touches[0].pageX - e.touches[1].pageX, e.touches[0].pageY - e.touches[1].pageY); }
 
+    // MODALS
     window.openWiki = () => { renderWiki(); document.getElementById('wikiModal').classList.remove('hidden'); }
     window.openWikiKey = (key) => { openWiki(); setTimeout(() => { const el = document.getElementById(`wiki-${key}`); if(el) { el.scrollIntoView({behavior:'smooth', block:'center'}); el.classList.add('ring-2', 'ring-orange-500'); } }, 100); }
     window.closeWiki = () => document.getElementById('wikiModal').classList.add('hidden');
     window.openAdmin = () => document.getElementById('adminModal').classList.remove('hidden');
     window.closeAdmin = () => document.getElementById('adminModal').classList.add('hidden');
     
+    // UPDATED TOGGLE
     window.toggleInspector = (forceOpen) => {
         const panel = document.getElementById('connectionsPanel');
-        const btn = document.getElementById('inspectorBtn');
-        if (forceOpen === true) { panel.classList.remove('translate-y-full'); btn.classList.add('hidden'); }
-        else if (forceOpen === false) { panel.classList.add('translate-y-full'); btn.classList.remove('hidden'); }
-        else { panel.classList.toggle('translate-y-full'); btn.classList.toggle('hidden'); }
+        const btnMobile = document.getElementById('inspectorBtnMobile');
+        const btnPC = document.getElementById('inspectorBtnPC');
+        
+        if (forceOpen === true) {
+            // Open
+            panel.classList.remove('translate-y-full', 'lg:translate-x-full');
+            btnMobile.classList.add('hidden');
+            btnPC.innerText = "▶";
+            isInspectorOpen = true;
+        } else if (forceOpen === false) {
+            // Close
+            panel.classList.add('translate-y-full', 'lg:translate-x-full');
+            btnMobile.classList.remove('hidden');
+            btnPC.innerText = "◀";
+            isInspectorOpen = false;
+        } else {
+            // Toggle
+            panel.classList.toggle('translate-y-full');
+            panel.classList.toggle('lg:translate-x-full');
+            isInspectorOpen = !isInspectorOpen;
+            
+            if(isInspectorOpen) {
+                btnMobile.classList.add('hidden');
+                btnPC.innerText = "▶";
+            } else {
+                btnMobile.classList.remove('hidden');
+                btnPC.innerText = "◀";
+            }
+        }
     }
 
     function renderWiki() { const c = document.getElementById('wikiContent'); if(c.innerHTML !== "") return; const categories = { "Input": [], "Logic": [], "Math/Util": [], "Output": [], "Misc": [], "Fant Mod": [] }; for (const [k, i] of Object.entries(library.wiki)) { let cat = i.category || "Misc"; if (cat.includes("Fant")) cat = "Fant Mod"; if(!categories[cat]) categories[cat] = []; let iconHTML = i.img ? `<div class="w-16 h-16 flex items-center justify-center bg-[#111] rounded border border-[#333] shrink-0"><img src="${i.img}" class="w-full h-full object-contain"></div>` : `<span class="text-4xl">${i.icon || '🔹'}</span>`; categories[cat].push(`<div id="wiki-${k}" class="bg-[#222] p-6 rounded-xl border border-[#333] mb-4 transition hover:border-orange-500/50"><div class="flex gap-6 items-start">${iconHTML}<div><h3 class="text-xl font-bold text-orange-400 mb-2">${i.title}</h3><p class="text-gray-300 text-base leading-relaxed">${i.text}</p></div></div></div>`); } for (const [catName, items] of Object.entries(categories)) { if(items.length > 0) { c.innerHTML += `<div class="text-orange-500 font-bold uppercase tracking-widest text-sm border-b border-[#333] pb-2 mb-6 mt-10">${catName}</div>`; c.innerHTML += items.join(''); } } }
