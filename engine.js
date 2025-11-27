@@ -1,32 +1,16 @@
-// --- ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ ---
-const library = { 
-    blocks: window.SM_BLOCKS || {}, 
-    wiki: window.SM_WIKI || {}, 
-    presets: window.SM_PRESETS || {} 
-};
-
-// Координаты (центр экрана)
+const library = { blocks: window.SM_BLOCKS || {}, wiki: window.SM_WIKI || {}, presets: window.SM_PRESETS || {} };
 let scale = 1, pointX = window.innerWidth/2, pointY = window.innerHeight/2;
-let isDragging = false, startX, startY, currentCategory = null, lastTouchDist = 0;
-const viewport = document.getElementById('viewport');
-const container = document.getElementById('canvas-container');
+let isDragging = false, startX, startY, currentCategory = null, lastTouchDist = 0, isInspectorOpen = false;
+const viewport = document.getElementById('viewport'), container = document.getElementById('canvas-container');
 const categoryMap = { 'input': ['input', 'sensor'], 'logic': ['logic', 'math'], 'output': ['output'], 'util': ['util'] };
 
-// --- ИНИЦИАЛИЗАЦИЯ ---
 function init() { 
     setupZoomPan(); 
-    // Авто-центровка при повороте экрана
-    window.addEventListener('resize', () => { 
-        pointX = window.innerWidth/2; 
-        pointY = window.innerHeight/2; 
-        updateTransform(); 
-    });
-    
-    if (typeof initWires === 'function') initWires();
-    console.log("✅ Engine v6.1 (Modular & Centered) Loaded"); 
+    window.addEventListener('resize', () => { pointX = window.innerWidth/2; pointY = window.innerHeight/2; updateTransform(); });
+    console.log("✅ Engine v6.1 Wires Sync"); 
 }
 
-// --- НАВИГАЦИЯ ---
+// NAV
 window.clearScreen = () => { 
     document.getElementById('canvas-content').innerHTML = '<div id="placeholder" class="text-gray-600 text-center pointer-events-none select-none absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"><div class="text-6xl mb-4 opacity-20">🛠</div><div class="text-lg">Выберите категорию</div></div>'; 
     document.getElementById('topPanel').classList.add('hidden'); 
@@ -34,25 +18,14 @@ window.clearScreen = () => {
     
     if (window.clearWires) window.clearWires();
     
-    // Сброс в центр
     scale = 1; pointX = window.innerWidth/2; pointY = window.innerHeight/2; updateTransform();
     if(window.innerWidth<1024) toggleInspector(false); 
 }
 
 window.filterCategory = (catName) => {
     const drawer = document.getElementById('blockDrawer');
-    if (currentCategory === catName) { 
-        drawer.classList.add('hidden'); 
-        currentCategory = null; 
-        document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active')); 
-    } else { 
-        drawer.classList.remove('hidden'); 
-        currentCategory = catName; 
-        document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active')); 
-        document.getElementById(`nav-${catName}`).classList.add('active'); 
-        document.getElementById('drawerTitle').innerText = catName === 'output' ? 'Механика' : catName === 'util' ? 'Утилиты' : catName.toUpperCase(); 
-        renderFilteredList(categoryMap[catName]); 
-    }
+    if (currentCategory === catName) { drawer.classList.add('hidden'); currentCategory = null; document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active')); }
+    else { drawer.classList.remove('hidden'); currentCategory = catName; document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active')); document.getElementById(`nav-${catName}`).classList.add('active'); document.getElementById('drawerTitle').innerText = catName === 'output' ? 'Механика' : catName === 'util' ? 'Утилиты' : catName.toUpperCase(); renderFilteredList(categoryMap[catName]); }
 }
 
 function renderFilteredList(allowedTypes) {
@@ -74,7 +47,7 @@ function renderFilteredList(allowedTypes) {
 window.closeDrawer = () => { document.getElementById('blockDrawer').classList.add('hidden'); document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active')); currentCategory = null; }
 window.closeDrawerMobile = () => { if(window.innerWidth < 1024) window.closeDrawer(); }
 
-// --- ЗАГРУЗКА СХЕМ ---
+// CANVAS
 window.showPresets = (targetKey) => {
     const presets = library.presets[targetKey];
     document.getElementById('topPanel').classList.add('hidden');
@@ -105,14 +78,12 @@ window.loadPreset = (targetKey, idx) => {
     let chainObjects = [];
     if (preset.chain) { preset.chain.forEach((key, i) => { let b = library.blocks[key] || { name: "UNKNOWN", icon: "?", type: "hidden" }; chainObjects.push({ ...b, key: key, idx: i + 1 }); }); }
     
-    // РАССТАНОВКА ОТ ЦЕНТРА
     const totalWidth = (chainObjects.length * 120) - 20; 
     const startX = -totalWidth / 2;
 
     chainObjects.forEach((b, i) => {
         const el = document.createElement('div');
         el.className = 'sm-block node-wrapper animate-[popIn_0.2s_ease-out] cursor-help';
-        // Абсолютные координаты
         el.style.left = `${startX + (i * 120)}px`;
         el.style.top = `-50px`; 
         el.setAttribute('onclick', `event.stopPropagation(); openWikiKey('${b.key}')`);
@@ -131,15 +102,12 @@ window.loadPreset = (targetKey, idx) => {
         }).join('');
     }
     
-    // Рисуем провода (если есть модуль)
     if (window.drawWires && preset.connections) setTimeout(() => window.drawWires(), 100);
-
-    // Центруем и показываем инспектор
-    setTimeout(autoFitView, 50); 
+    setTimeout(autoFitView, 200); // Увеличили задержку для надежности
     if(window.innerWidth < 1024) window.toggleInspector(true);
 }
 
-// --- ЦЕНТРОВКА И ЗУМ ---
+// AUTO-FIT (With Wire Update)
 window.autoFitView = () => {
     const blocks = document.querySelectorAll('.sm-block');
     if (blocks.length === 0) { scale = 1; pointX = window.innerWidth/2; pointY = window.innerHeight/2; updateTransform(); return; }
@@ -147,20 +115,21 @@ window.autoFitView = () => {
     requestAnimationFrame(() => {
         const vpW = viewport.offsetWidth;
         const vpH = viewport.offsetHeight;
-        
-        // Ширина контента (блоки в ряд)
         const contentW = blocks.length * 120 + 100;
         
-        // Считаем зум
         const scaleX = vpW / contentW;
         scale = Math.min(Math.max(scaleX, 0.4), 1.2);
         
-        // Ставим в центр
         pointX = vpW / 2;
         pointY = vpH / 2;
 
         updateTransform();
-        if (window.updateWires) window.updateWires();
+        
+        // ВАЖНОЕ ИСПРАВЛЕНИЕ: Обновляем линии ПОСЛЕ смещения схемы
+        if (window.updateWires) {
+            // Небольшая задержка, чтобы CSS transform успел примениться
+            setTimeout(() => window.updateWires(), 50);
+        }
     });
 }
 
@@ -170,10 +139,13 @@ window.lo = (id) => { const el = document.getElementById(`block-${id}`); if(el) 
 
 window.resetView = () => window.autoFitView();
 
-function updateTransform() { container.style.transform = `translate(${pointX}px, ${pointY}px) scale(${scale})`; }
+function updateTransform() { 
+    container.style.transform = `translate(${pointX}px, ${pointY}px) scale(${scale})`; 
+    // Синхронизация линий при каждом кадре анимации
+    if (window.updateWires) window.updateWires();
+}
 
 function setupZoomPan() {
-    // Мышь
     viewport.addEventListener('mousedown', e => { isDragging = true; startX = e.clientX - pointX; startY = e.clientY - pointY; });
     window.addEventListener('mousemove', e => { if(!isDragging) return; e.preventDefault(); pointX = e.clientX - startX; pointY = e.clientY - startY; updateTransform(); if(window.updateWires) window.updateWires(); });
     window.addEventListener('mouseup', () => isDragging = false);
@@ -185,7 +157,6 @@ function setupZoomPan() {
         if(window.updateWires) window.updateWires();
     });
     
-    // Тач (Мобильный)
     viewport.addEventListener('touchstart', e => {
         if(e.touches.length === 1) { isDragging=true; startX=e.touches[0].clientX-pointX; startY=e.touches[0].clientY-pointY; }
         if(e.touches.length === 2) { isDragging=false; lastTouchDist = getTouchDist(e); }
@@ -208,7 +179,6 @@ function setupZoomPan() {
 }
 function getTouchDist(e) { return Math.hypot(e.touches[0].pageX - e.touches[1].pageX, e.touches[0].pageY - e.touches[1].pageY); }
 
-// --- МОДАЛКИ ---
 window.openWiki = () => { renderWiki(); document.getElementById('wikiModal').classList.remove('hidden'); }
 window.openWikiKey = (key) => { openWiki(); setTimeout(() => { const el = document.getElementById(`wiki-${key}`); if(el) { el.scrollIntoView({behavior:'smooth', block:'center'}); el.classList.add('ring-2', 'ring-orange-500'); } }, 100); }
 window.closeWiki = () => document.getElementById('wikiModal').classList.add('hidden');
@@ -219,21 +189,12 @@ window.toggleInspector = (forceOpen) => {
     const panel = document.getElementById('connectionsPanel');
     const btnMobile = document.getElementById('inspectorBtnMobile');
     const btnPC = document.getElementById('inspectorBtnPC');
-    
-    if (forceOpen === true) { 
-        panel.classList.remove('translate-y-full', 'lg:translate-x-full'); 
-        btnMobile.classList.add('hidden'); 
-        btnPC.innerText = "▶"; 
-    } else if (forceOpen === false) { 
-        panel.classList.add('translate-y-full', 'lg:translate-x-full'); 
-        btnMobile.classList.remove('hidden'); 
-        btnPC.innerText = "◀"; 
-    } else { 
-        panel.classList.toggle('translate-y-full'); 
-        panel.classList.toggle('lg:translate-x-full'); 
-        const isOpen = !panel.classList.contains('translate-y-full');
-        if(isOpen) { btnMobile.classList.add('hidden'); btnPC.innerText = "▶"; } 
-        else { btnMobile.classList.remove('hidden'); btnPC.innerText = "◀"; } 
+    if (forceOpen === true) { panel.classList.remove('translate-y-full', 'lg:translate-x-full'); btnMobile.classList.add('hidden'); btnPC.innerText = "▶"; }
+    else if (forceOpen === false) { panel.classList.add('translate-y-full', 'lg:translate-x-full'); btnMobile.classList.remove('hidden'); btnPC.innerText = "◀"; }
+    else { panel.classList.toggle('translate-y-full'); panel.classList.toggle('lg:translate-x-full'); 
+           const isOpen = !panel.classList.contains('translate-y-full');
+           if(isOpen) { btnMobile.classList.add('hidden'); btnPC.innerText = "▶"; } 
+           else { btnMobile.classList.remove('hidden'); btnPC.innerText = "◀"; } 
     }
 }
 
@@ -241,5 +202,4 @@ function renderWiki() { const c = document.getElementById('wikiContent'); if(c.i
 window.copyKeys = () => { navigator.clipboard.writeText(Object.keys(library.blocks).join(', ')); document.getElementById('adminLog').innerText = "Скопировано!"; }
 window.universalMerge = () => { alert("Используйте GitHub!"); }
 
-// ЗАПУСК
 init();
