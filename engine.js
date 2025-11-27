@@ -1,13 +1,16 @@
 const library = { blocks: window.SM_BLOCKS || {}, wiki: window.SM_WIKI || {}, presets: window.SM_PRESETS || {} };
-let scale = 1, pointX = window.innerWidth/2, pointY = window.innerHeight/2;
+// НАЧАЛО: (0,0) - это координаты контейнера относительно левого верха экрана
+let scale = 1, pointX = 0, pointY = 0;
 let isDragging = false, startX, startY, currentCategory = null, lastTouchDist = 0, isInspectorOpen = false;
 const viewport = document.getElementById('viewport'), container = document.getElementById('canvas-container');
 const categoryMap = { 'input': ['input', 'sensor'], 'logic': ['logic', 'math'], 'output': ['output'], 'util': ['util'] };
 
 function init() { 
+    // Стартовая центровка
+    setTimeout(window.autoFitView, 100);
     setupZoomPan(); 
-    window.addEventListener('resize', () => { pointX = window.innerWidth/2; pointY = window.innerHeight/2; updateTransform(); });
-    console.log("✅ Engine v6.1 Wires Sync"); 
+    window.addEventListener('resize', window.autoFitView);
+    console.log("✅ Engine v6.2 Loaded"); 
 }
 
 // NAV
@@ -18,7 +21,8 @@ window.clearScreen = () => {
     
     if (window.clearWires) window.clearWires();
     
-    scale = 1; pointX = window.innerWidth/2; pointY = window.innerHeight/2; updateTransform();
+    // Сброс
+    scale = 1; pointX = 0; pointY = 0; updateTransform();
     if(window.innerWidth<1024) toggleInspector(false); 
 }
 
@@ -78,12 +82,14 @@ window.loadPreset = (targetKey, idx) => {
     let chainObjects = [];
     if (preset.chain) { preset.chain.forEach((key, i) => { let b = library.blocks[key] || { name: "UNKNOWN", icon: "?", type: "hidden" }; chainObjects.push({ ...b, key: key, idx: i + 1 }); }); }
     
+    // СТРОГАЯ СЕТКА: Рисуем блоки в линию от центра
     const totalWidth = (chainObjects.length * 120) - 20; 
     const startX = -totalWidth / 2;
 
     chainObjects.forEach((b, i) => {
         const el = document.createElement('div');
         el.className = 'sm-block node-wrapper animate-[popIn_0.2s_ease-out] cursor-help';
+        // Абсолютные координаты относительно 0,0 (центра canvas-container при scale=1)
         el.style.left = `${startX + (i * 120)}px`;
         el.style.top = `-50px`; 
         el.setAttribute('onclick', `event.stopPropagation(); openWikiKey('${b.key}')`);
@@ -103,33 +109,32 @@ window.loadPreset = (targetKey, idx) => {
     }
     
     if (window.drawWires && preset.connections) setTimeout(() => window.drawWires(), 100);
-    setTimeout(autoFitView, 200); // Увеличили задержку для надежности
+    setTimeout(autoFitView, 50);
     if(window.innerWidth < 1024) window.toggleInspector(true);
 }
 
-// AUTO-FIT (With Wire Update)
+// SMART AUTO-FIT (Math for Origin 0 0)
 window.autoFitView = () => {
     const blocks = document.querySelectorAll('.sm-block');
-    if (blocks.length === 0) { scale = 1; pointX = window.innerWidth/2; pointY = window.innerHeight/2; updateTransform(); return; }
+    if (blocks.length === 0) { scale = 1; pointX = 0; pointY = 0; updateTransform(); return; }
 
     requestAnimationFrame(() => {
         const vpW = viewport.offsetWidth;
         const vpH = viewport.offsetHeight;
-        const contentW = blocks.length * 120 + 100;
         
+        // Центр контента всегда (0,0), так как мы так строим блоки
+        // Нам нужно просто подвинуть canvas-container, чтобы его (0,0) совпал с центром вьюпорта
+        
+        const contentW = blocks.length * 120 + 100;
         const scaleX = vpW / contentW;
         scale = Math.min(Math.max(scaleX, 0.4), 1.2);
         
+        // Центровка
         pointX = vpW / 2;
         pointY = vpH / 2;
 
         updateTransform();
-        
-        // ВАЖНОЕ ИСПРАВЛЕНИЕ: Обновляем линии ПОСЛЕ смещения схемы
-        if (window.updateWires) {
-            // Небольшая задержка, чтобы CSS transform успел примениться
-            setTimeout(() => window.updateWires(), 50);
-        }
+        if (window.updateWires) window.updateWires();
     });
 }
 
@@ -139,24 +144,33 @@ window.lo = (id) => { const el = document.getElementById(`block-${id}`); if(el) 
 
 window.resetView = () => window.autoFitView();
 
-function updateTransform() { 
-    container.style.transform = `translate(${pointX}px, ${pointY}px) scale(${scale})`; 
-    // Синхронизация линий при каждом кадре анимации
-    if (window.updateWires) window.updateWires();
-}
+function updateTransform() { container.style.transform = `translate(${pointX}px, ${pointY}px) scale(${scale})`; }
 
 function setupZoomPan() {
+    // Mouse
     viewport.addEventListener('mousedown', e => { isDragging = true; startX = e.clientX - pointX; startY = e.clientY - pointY; });
     window.addEventListener('mousemove', e => { if(!isDragging) return; e.preventDefault(); pointX = e.clientX - startX; pointY = e.clientY - startY; updateTransform(); if(window.updateWires) window.updateWires(); });
     window.addEventListener('mouseup', () => isDragging = false);
+    
+    // Wheel
     viewport.addEventListener('wheel', e => { e.preventDefault(); 
         const zoomSpeed = 0.1;
         const newScale = e.deltaY > 0 ? scale - zoomSpeed : scale + zoomSpeed;
-        scale = Math.min(Math.max(0.2, newScale), 3);
+        const limitedScale = Math.min(Math.max(0.2, newScale), 3);
+        
+        // Zoom towards mouse logic for origin 0 0
+        const mouseX = e.clientX - viewport.getBoundingClientRect().left;
+        const mouseY = e.clientY - viewport.getBoundingClientRect().top;
+        const ratio = limitedScale / scale;
+        pointX = mouseX - (mouseX - pointX) * ratio;
+        pointY = mouseY - (mouseY - pointY) * ratio;
+        
+        scale = limitedScale;
         updateTransform(); 
         if(window.updateWires) window.updateWires();
     });
     
+    // Touch
     viewport.addEventListener('touchstart', e => {
         if(e.touches.length === 1) { isDragging=true; startX=e.touches[0].clientX-pointX; startY=e.touches[0].clientY-pointY; }
         if(e.touches.length === 2) { isDragging=false; lastTouchDist = getTouchDist(e); }
@@ -168,7 +182,16 @@ function setupZoomPan() {
             const dist = getTouchDist(e);
             if(lastTouchDist) {
                 const delta = dist / lastTouchDist;
-                scale = Math.min(Math.max(0.2, scale * delta), 3);
+                const newScale = Math.min(Math.max(0.2, scale * delta), 3);
+                // Pinch center logic
+                const rect = viewport.getBoundingClientRect();
+                const centerX = (e.touches[0].clientX + e.touches[1].clientX) / 2 - rect.left;
+                const centerY = (e.touches[0].clientY + e.touches[1].clientY) / 2 - rect.top;
+                const ratio = newScale / scale;
+                
+                pointX = centerX - (centerX - pointX) * ratio;
+                pointY = centerY - (centerY - pointY) * ratio;
+                scale = newScale;
                 updateTransform();
                 if(window.updateWires) window.updateWires();
             }
