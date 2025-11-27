@@ -3,19 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SM Architect v5.3 (Stable Center)</title>
+    <title>SM Architect v5.4 (Hotfix)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Segoe+UI:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
-        /* --- БАЗОВЫЕ СТИЛИ --- */
+        /* База */
         body { background-color: #0f0f0f; color: #e5e5e5; font-family: 'Segoe UI', sans-serif; overflow: hidden; touch-action: none; user-select: none; -webkit-user-select: none; }
         #wikiModal, #adminModal { user-select: text; -webkit-user-select: text; }
         
-        /* --- ХОЛСТ --- */
+        /* Холст */
         #viewport { flex: 1; position: relative; background-color: #121212; cursor: grab; width: 100%; height: 100%; overflow: hidden; display: flex; align-items: center; justify-content: center; }
         #viewport:active { cursor: grabbing; }
         
-        /* ВАЖНО: Точка трансформации - ЦЕНТР */
+        /* ЦЕНТРОВКА: Origin Center */
         #canvas-container { 
             transition: transform 0.1s cubic-bezier(0.1, 0.7, 0.1, 1); 
             transform-origin: center center; 
@@ -23,7 +23,7 @@
         }
         .bg-grid { position: absolute; inset: -5000px; z-index: 0; background-image: radial-gradient(#333 1px, transparent 1px); background-size: 20px 20px; opacity: 0.4; pointer-events: none; }
 
-        /* --- БЛОКИ --- */
+        /* Блоки */
         .sm-block {
             width: 100px; height: 100px; 
             background: radial-gradient(circle at top left, #2a2a2a, #161616);
@@ -48,18 +48,18 @@
             display: flex; align-items: center; justify-content: center; z-index: 20; box-shadow: 0 2px 4px rgba(0,0,0,0.5); pointer-events: none;
         }
 
-        /* ТИПЫ И ПОДСВЕТКА */
+        /* Типы и Подсветка */
         .type-input { border-color: #22c55e; } .type-logic { border-color: #a855f7; } .type-math { border-color: #f97316; } .type-output { border-color: #ef4444; } .type-util { border-color: #3b82f6; } .type-hidden { opacity: 0.5; border-style: dashed; border-color: #444; }
         .sm-block.active-highlight { border-color: #fb923c !important; box-shadow: 0 0 0 6px rgba(251, 146, 60, 0.4), 0 20px 40px rgba(0,0,0,0.9) !important; transform: scale(1.2); z-index: 100 !important; background: #222 !important; }
 
-        /* МЕНЮ */
+        /* Меню */
         .nav-item { width: 100%; height: 56px; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #888; cursor: pointer; transition: all 0.2s; border-left: 3px solid transparent; flex-shrink: 0; }
         .nav-item:hover { background: #222; color: #fff; }
         .nav-item.active { color: #fb923c; border-left-color: #fb923c; background: #1a1a1a; }
         .nav-label { font-size: 0.6rem; font-weight: bold; text-transform: uppercase; margin-top: 2px; }
         
-        /* СКРОЛЛБАР */
-        ::-webkit-scrollbar { width: 6px; height: 6px; } 
+        /* Скроллбар */
+        ::-webkit-scrollbar { width: 4px; height: 4px; } 
         ::-webkit-scrollbar-thumb { background: #444; border-radius: 2px; }
         ::-webkit-scrollbar-track { background: #0a0a0a; }
         
@@ -67,7 +67,7 @@
         .drawer-enter { animation: slideIn 0.2s ease-out forwards; }
     </style>
 </head>
-<body class="flex h-dvh text-base bg-[#0f0f0f] overflow-hidden">
+<body class="flex h-dvh text-base bg-[#0f0f0f] overflow-hidden select-none">
 
     <nav class="w-16 lg:w-20 bg-[#0a0a0a] border-r border-[#222] flex flex-col items-center py-2 z-40 shadow-xl shrink-0 h-full">
         <button onclick="clearScreen()" class="nav-item mb-1 text-orange-500 hover:text-orange-400" title="Домой"><span class="text-2xl">🏠</span></button>
@@ -78,7 +78,7 @@
             <button onclick="filterCategory('util')" class="nav-item" id="nav-util"><img src="assets/icon_util.png" class="w-8 h-8 object-contain opacity-70 hover:opacity-100 transition-opacity" onerror="this.style.display='none'; this.nextElementSibling.style.display='block'"><span class="text-2xl hidden">🧰</span><span class="nav-label">Утил.</span></button>
         </div>
         <div class="w-full border-t border-[#222] pt-2 mt-auto bg-[#0a0a0a] shrink-0 pb-safe">
-            <button onclick="autoFitView()" class="nav-item" title="Авто-масштаб"><span class="text-xl">🎯</span></button>
+            <button onclick="resetView()" class="nav-item" title="Центровка"><span class="text-xl">🎯</span></button>
             <button onclick="openWiki()" class="nav-item" title="Вики"><span class="text-xl">📖</span></button>
             <button onclick="openAdmin()" class="nav-item" title="Админка"><span class="text-xl">⚙️</span></button>
         </div>
@@ -120,8 +120,9 @@
     const categoryMap = { 'input': ['input', 'sensor'], 'logic': ['logic', 'math'], 'output': ['output'], 'util': ['util'] };
 
     function init() { 
+        setupZoomPan(); // ВОТ ОНО! Эта функция теперь запускает управление
         pointX = 0; pointY = 0; updateTransform();
-        console.log("✅ v5.3 Stable Center"); 
+        console.log("✅ v5.4 Stable"); 
     }
 
     // NAV
@@ -129,10 +130,7 @@
         document.getElementById('canvas').innerHTML = '<div id="placeholder" class="text-gray-600 text-center pointer-events-none select-none"><div class="text-6xl mb-4 opacity-20">🛠</div><div class="text-lg">Выберите категорию</div></div>'; 
         document.getElementById('topPanel').classList.add('hidden'); 
         document.getElementById('connectionsList').innerHTML = '<div class="text-center opacity-50 mt-4">Нет активной схемы</div>'; 
-        
-        // Сброс позиции в центр
-        scale = 1; pointX = 0; pointY = 0; updateTransform();
-        
+        resetView(); 
         if(window.innerWidth<1024) toggleInspector(false); 
     }
     
@@ -165,10 +163,6 @@
     window.showPresets = (targetKey) => {
         const canvas = document.getElementById('canvas');
         const presets = library.presets[targetKey];
-        
-        // Принудительный сброс координат перед загрузкой новой схемы
-        scale = 1; pointX = 0; pointY = 0; updateTransform();
-
         document.getElementById('topPanel').classList.add('hidden');
         document.getElementById('connectionsList').innerHTML = '';
         if (!presets) return;
@@ -176,6 +170,8 @@
         canvas.innerHTML = '';
         presets.forEach((p, idx) => { canvas.innerHTML += `<button onclick="loadPreset('${targetKey}', ${idx})" class="p-6 bg-[#222] border border-[#444] rounded hover:border-orange-500 text-gray-200 pointer-events-auto transition hover:scale-105 shadow-xl text-lg font-bold">${p.name}</button>`; });
         
+        // Принудительный сброс перед фитом
+        pointX = 0; pointY = 0; updateTransform();
         setTimeout(autoFitView, 50);
     }
 
@@ -207,14 +203,12 @@
         if(window.innerWidth < 1024) window.toggleInspector(true);
     }
 
-    // AUTO-FIT (Simplified & Centered)
+    // AUTO-FIT (Simplified)
     window.autoFitView = () => {
         const blocks = document.querySelectorAll('.sm-block');
         if (blocks.length === 0) { scale = 1; pointX = 0; pointY = 0; updateTransform(); return; }
 
         requestAnimationFrame(() => {
-            // Считаем только Scale, позиция остается 0,0 (центр)
-            // Это работает, потому что transform-origin = center center
             let minX=Infinity, minY=Infinity, maxX=-Infinity, maxY=-Infinity;
             blocks.forEach(b => { const x=b.offsetLeft; const y=b.offsetTop; if(x<minX)minX=x; if(y<minY)minY=y; if(x+b.offsetWidth>maxX)maxX=x+b.offsetWidth; if(y+b.offsetHeight>maxY)maxY=y+b.offsetHeight; });
             
@@ -237,6 +231,8 @@
     window.hi = (id) => { const el = document.getElementById(`block-${id}`); if(el) el.classList.add('active-highlight'); }
     window.lo = (id) => { const el = document.getElementById(`block-${id}`); if(el) el.classList.remove('active-highlight'); }
 
+    window.resetView = () => window.autoFitView();
+
     function updateTransform() { container.style.transform = `translate(${pointX}px, ${pointY}px) scale(${scale})`; }
     
     function setupZoomPan() {
@@ -250,9 +246,15 @@
             updateTransform(); 
         });
         
-        viewport.addEventListener('touchstart', e => { if(e.touches.length===1) { isDragging=true; startX=e.touches[0].clientX-pointX; startY=e.touches[0].clientY-pointY; } if(e.touches.length===2) { isDragging=false; lastTouchDist = getTouchDist(e); } }, { passive: false });
-        viewport.addEventListener('touchmove', e => { e.preventDefault(); if(isDragging&&e.touches.length===1){pointX=e.touches[0].clientX-startX;pointY=e.touches[0].clientY-startY;updateTransform();} 
-            if(e.touches.length===2) {
+        // Touch (Passive: false)
+        viewport.addEventListener('touchstart', e => {
+            if(e.touches.length === 1) { isDragging=true; startX=e.touches[0].clientX-pointX; startY=e.touches[0].clientY-pointY; }
+            if(e.touches.length === 2) { isDragging=false; lastTouchDist = getTouchDist(e); }
+        }, { passive: false });
+        viewport.addEventListener('touchmove', e => {
+            e.preventDefault();
+            if(isDragging && e.touches.length === 1) { pointX=e.touches[0].clientX-startX; pointY=e.touches[0].clientY-startY; updateTransform(); }
+            if(e.touches.length === 2) {
                 const dist = getTouchDist(e);
                 if(lastTouchDist) {
                     const delta = dist / lastTouchDist;
