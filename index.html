@@ -3,66 +3,31 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SM Architect v5.4 (Hotfix)</title>
+    <title>SM Architect v6.0 (Modular)</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leader-line/1.0.7/leader-line.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Segoe+UI:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
-        /* База */
+        /* CSS остался тот же, скопируйте из прошлого сообщения или оставьте как есть, если не удаляли стили */
         body { background-color: #0f0f0f; color: #e5e5e5; font-family: 'Segoe UI', sans-serif; overflow: hidden; touch-action: none; user-select: none; -webkit-user-select: none; }
         #wikiModal, #adminModal { user-select: text; -webkit-user-select: text; }
-        
-        /* Холст */
         #viewport { flex: 1; position: relative; background-color: #121212; cursor: grab; width: 100%; height: 100%; overflow: hidden; display: flex; align-items: center; justify-content: center; }
         #viewport:active { cursor: grabbing; }
-        
-        /* ЦЕНТРОВКА: Origin Center */
-        #canvas-container { 
-            transition: transform 0.1s cubic-bezier(0.1, 0.7, 0.1, 1); 
-            transform-origin: center center; 
-            display: flex; align-items: center; justify-content: center;
-        }
+        #canvas-container { transition: transform 0.1s cubic-bezier(0.1, 0.7, 0.1, 1); transform-origin: center center; width:0; height:0; display: flex; align-items: center; justify-content: center;}
         .bg-grid { position: absolute; inset: -5000px; z-index: 0; background-image: radial-gradient(#333 1px, transparent 1px); background-size: 20px 20px; opacity: 0.4; pointer-events: none; }
-
-        /* Блоки */
-        .sm-block {
-            width: 100px; height: 100px; 
-            background: radial-gradient(circle at top left, #2a2a2a, #161616);
-            border: 2px solid #444; border-radius: 8px;
-            display: flex; flex-direction: column; justify-content: space-between;
-            position: relative; z-index: 10;
-            box-shadow: 0 6px 12px rgba(0,0,0,0.6);
-            pointer-events: auto; transition: border-color 0.2s;
-        }
+        .sm-block { width: 100px; height: 100px; background: radial-gradient(circle at top left, #2a2a2a, #161616); border: 2px solid #444; border-radius: 8px; display: flex; flex-direction: column; justify-content: space-between; position: relative; z-index: 10; box-shadow: 0 6px 12px rgba(0,0,0,0.6); pointer-events: auto; transition: border-color 0.2s; }
         .icon-container { flex-grow: 1; display: flex; align-items: center; justify-content: center; padding: 4px; width: 100%; overflow: hidden; }
         .img-layer { max-width: 100%; max-height: 100%; object-fit: contain; filter: drop-shadow(0 2px 2px rgba(0,0,0,0.5)); pointer-events: none; }
         .emoji-layer { font-size: 36px; pointer-events: none; }
-        .sm-block-title { 
-            width: 100%; background: rgba(0,0,0,0.8); border-top: 1px solid rgba(255,255,255,0.1);
-            font-size: 10px; font-weight: bold; text-transform: uppercase; color: #ccc; text-align: center; 
-            padding: 4px 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex-shrink: 0; pointer-events: none;
-        }
-        .block-idx { 
-            position: absolute; top: -8px; left: -8px; background: #333; color: #fff; 
-            width: 22px; height: 22px; border-radius: 50%; border: 1px solid #666; 
-            font-family: monospace; font-size: 11px; font-weight: bold; 
-            display: flex; align-items: center; justify-content: center; z-index: 20; box-shadow: 0 2px 4px rgba(0,0,0,0.5); pointer-events: none;
-        }
-
-        /* Типы и Подсветка */
+        .sm-block-title { width: 100%; background: rgba(0,0,0,0.8); border-top: 1px solid rgba(255,255,255,0.1); font-size: 10px; font-weight: bold; text-transform: uppercase; color: #ccc; text-align: center; padding: 4px 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex-shrink: 0; pointer-events: none; }
+        .block-idx { position: absolute; top: -8px; left: -8px; background: #333; color: #fff; width: 22px; height: 22px; border-radius: 50%; border: 1px solid #666; font-family: monospace; font-size: 11px; font-weight: bold; display: flex; align-items: center; justify-content: center; z-index: 20; box-shadow: 0 2px 4px rgba(0,0,0,0.5); pointer-events: none; }
         .type-input { border-color: #22c55e; } .type-logic { border-color: #a855f7; } .type-math { border-color: #f97316; } .type-output { border-color: #ef4444; } .type-util { border-color: #3b82f6; } .type-hidden { opacity: 0.5; border-style: dashed; border-color: #444; }
         .sm-block.active-highlight { border-color: #fb923c !important; box-shadow: 0 0 0 6px rgba(251, 146, 60, 0.4), 0 20px 40px rgba(0,0,0,0.9) !important; transform: scale(1.2); z-index: 100 !important; background: #222 !important; }
-
-        /* Меню */
         .nav-item { width: 100%; height: 56px; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #888; cursor: pointer; transition: all 0.2s; border-left: 3px solid transparent; flex-shrink: 0; }
         .nav-item:hover { background: #222; color: #fff; }
         .nav-item.active { color: #fb923c; border-left-color: #fb923c; background: #1a1a1a; }
         .nav-label { font-size: 0.6rem; font-weight: bold; text-transform: uppercase; margin-top: 2px; }
-        
-        /* Скроллбар */
-        ::-webkit-scrollbar { width: 4px; height: 4px; } 
-        ::-webkit-scrollbar-thumb { background: #444; border-radius: 2px; }
-        ::-webkit-scrollbar-track { background: #0a0a0a; }
-        
+        ::-webkit-scrollbar { width: 4px; height: 4px; } ::-webkit-scrollbar-thumb { background: #444; border-radius: 2px; } ::-webkit-scrollbar-track { background: #0a0a0a; }
         @keyframes slideIn { from { transform: translateX(-100%); } to { transform: translateX(0); } }
         .drawer-enter { animation: slideIn 0.2s ease-out forwards; }
     </style>
@@ -78,7 +43,7 @@
             <button onclick="filterCategory('util')" class="nav-item" id="nav-util"><img src="assets/icon_util.png" class="w-8 h-8 object-contain opacity-70 hover:opacity-100 transition-opacity" onerror="this.style.display='none'; this.nextElementSibling.style.display='block'"><span class="text-2xl hidden">🧰</span><span class="nav-label">Утил.</span></button>
         </div>
         <div class="w-full border-t border-[#222] pt-2 mt-auto bg-[#0a0a0a] shrink-0 pb-safe">
-            <button onclick="resetView()" class="nav-item" title="Центровка"><span class="text-xl">🎯</span></button>
+            <button onclick="autoFitView()" class="nav-item" title="Авто-масштаб"><span class="text-xl">🎯</span></button>
             <button onclick="openWiki()" class="nav-item" title="Вики"><span class="text-xl">📖</span></button>
             <button onclick="openAdmin()" class="nav-item" title="Админка"><span class="text-xl">⚙️</span></button>
         </div>
@@ -109,189 +74,12 @@
     <div id="wikiModal" class="fixed inset-0 bg-black/90 hidden z-[100] flex items-center justify-center p-4 backdrop-blur-sm" onclick="if(event.target===this)closeWiki()"><div class="bg-[#1a1a1a] w-full max-w-4xl h-[85vh] rounded-2xl border border-[#333] flex flex-col shadow-2xl"><div class="p-4 border-b border-[#333] flex justify-between items-center"><h2 class="text-2xl font-bold text-orange-500">📚 Wiki</h2><button onclick="closeWiki()" class="text-3xl text-gray-500 hover:text-white p-2">&times;</button></div><div class="p-8 overflow-y-auto space-y-8 text-gray-300" id="wikiContent"></div></div></div>
     <div id="adminModal" class="fixed inset-0 bg-black/95 hidden z-[110] flex items-center justify-center p-4 backdrop-blur-md" onclick="if(event.target===this)closeAdmin()"><div class="bg-[#1a1a1a] w-full max-w-3xl rounded-xl border border-[#333] flex flex-col shadow-2xl max-h-[90vh]"><div class="p-5 border-b border-[#333] flex justify-between items-center"><h2 class="text-xl font-bold text-blue-400">⚙️ Admin</h2><button onclick="closeAdmin()" class="text-gray-500 hover:text-white p-2">✕</button></div><div class="p-6 overflow-y-auto flex-1 space-y-4"><textarea id="universalImport" class="w-full h-60 bg-[#0a0a0a] border border-[#333] rounded p-4 text-sm font-mono text-green-400 focus:border-blue-500 outline-none" placeholder="JSON..."></textarea><div class="flex gap-3 pt-2"><button onclick="copyKeys()" class="px-4 py-3 bg-[#222] text-gray-300 rounded border border-[#333] hover:text-white text-sm font-bold flex-1">📋 Keys</button><button onclick="universalMerge()" class="px-4 py-3 bg-blue-900/30 text-blue-300 rounded border border-blue-800 hover:bg-blue-800 hover:text-white text-sm font-bold flex-1">Import</button></div></div></div></div>
 
-<script src="blocks.js"></script>
-<script src="wiki.js"></script>
-<script src="presets.js"></script>
-
-<script>
-    const library = { blocks: window.SM_BLOCKS || {}, wiki: window.SM_WIKI || {}, presets: window.SM_PRESETS || {} };
-    let scale = 1, pointX = 0, pointY = 0, isDragging = false, startX, startY, currentCategory = null, lastTouchDist = 0, isInspectorOpen = false;
-    const viewport = document.getElementById('viewport'), container = document.getElementById('canvas-container');
-    const categoryMap = { 'input': ['input', 'sensor'], 'logic': ['logic', 'math'], 'output': ['output'], 'util': ['util'] };
-
-    function init() { 
-        setupZoomPan(); // ВОТ ОНО! Эта функция теперь запускает управление
-        pointX = 0; pointY = 0; updateTransform();
-        console.log("✅ v5.4 Stable"); 
-    }
-
-    // NAV
-    window.clearScreen = () => { 
-        document.getElementById('canvas').innerHTML = '<div id="placeholder" class="text-gray-600 text-center pointer-events-none select-none"><div class="text-6xl mb-4 opacity-20">🛠</div><div class="text-lg">Выберите категорию</div></div>'; 
-        document.getElementById('topPanel').classList.add('hidden'); 
-        document.getElementById('connectionsList').innerHTML = '<div class="text-center opacity-50 mt-4">Нет активной схемы</div>'; 
-        resetView(); 
-        if(window.innerWidth<1024) toggleInspector(false); 
-    }
+    <script src="blocks.js"></script>
+    <script src="wiki.js"></script>
+    <script src="presets.js"></script>
     
-    window.filterCategory = (catName) => {
-        const drawer = document.getElementById('blockDrawer');
-        if (currentCategory === catName) { drawer.classList.add('hidden'); currentCategory = null; document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active')); }
-        else { drawer.classList.remove('hidden'); currentCategory = catName; document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active')); document.getElementById(`nav-${catName}`).classList.add('active'); document.getElementById('drawerTitle').innerText = catName === 'output' ? 'Механика' : catName === 'util' ? 'Утилиты' : catName.toUpperCase(); renderFilteredList(categoryMap[catName]); }
-    }
+    <script src="wires.js"></script>
+    <script src="engine.js"></script>
 
-    function renderFilteredList(allowedTypes) {
-        const list = document.getElementById('menuList'); list.innerHTML = '';
-        const keys = Object.keys(library.blocks).filter(k => { const b = library.blocks[k]; return b.type !== 'hidden' && allowedTypes.includes(b.type); });
-        if (keys.length === 0) { list.innerHTML = '<div class="text-gray-500 text-xs text-center mt-4">Пусто</div>'; return; }
-        keys.forEach(key => {
-            const b = library.blocks[key];
-            const hasPreset = library.presets[key] && library.presets[key].length > 0;
-            const div = document.createElement('div');
-            div.className = 'flex items-center gap-3 p-3 rounded hover:bg-[#222] cursor-pointer transition group mb-1';
-            if (hasPreset) div.classList.add('bg-[#1a1a1a]', 'border-l-2', 'border-orange-500/50');
-            div.onclick = () => { if(hasPreset) window.showPresets(key); else alert("Схем пока нет."); if(window.innerWidth < 1024) window.closeDrawer(); };
-            let icon = b.img ? `<img src="${b.img}" class="w-8 h-8 object-contain" onerror="this.style.display='none';this.nextElementSibling.style.display='block'"><span class="text-xl hidden">${b.icon}</span>` : `<span class="text-xl">${b.icon}</span>`;
-            div.innerHTML = `${icon}<div class="flex-1 min-w-0"><div class="text-sm font-bold text-gray-300 truncate group-hover:text-white">${b.name}</div>${hasPreset ? '<div class="text-[10px] text-orange-500">Есть схемы</div>' : ''}</div>`;
-            list.appendChild(div);
-        });
-    }
-    window.closeDrawer = () => { document.getElementById('blockDrawer').classList.add('hidden'); document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active')); currentCategory = null; }
-    window.closeDrawerMobile = () => { if(window.innerWidth < 1024) window.closeDrawer(); }
-
-    // CANVAS
-    window.showPresets = (targetKey) => {
-        const canvas = document.getElementById('canvas');
-        const presets = library.presets[targetKey];
-        document.getElementById('topPanel').classList.add('hidden');
-        document.getElementById('connectionsList').innerHTML = '';
-        if (!presets) return;
-        if (presets.length === 1) { loadPreset(targetKey, 0); return; }
-        canvas.innerHTML = '';
-        presets.forEach((p, idx) => { canvas.innerHTML += `<button onclick="loadPreset('${targetKey}', ${idx})" class="p-6 bg-[#222] border border-[#444] rounded hover:border-orange-500 text-gray-200 pointer-events-auto transition hover:scale-105 shadow-xl text-lg font-bold">${p.name}</button>`; });
-        
-        // Принудительный сброс перед фитом
-        pointX = 0; pointY = 0; updateTransform();
-        setTimeout(autoFitView, 50);
-    }
-
-    window.loadPreset = (targetKey, idx) => {
-        const preset = library.presets[targetKey][idx];
-        document.getElementById('infoTitle').innerText = preset.name;
-        document.getElementById('infoDesc').innerHTML = preset.desc || "";
-        document.getElementById('topPanel').classList.remove('hidden');
-        const canvas = document.getElementById('canvas'); canvas.innerHTML = '';
-        let chainObjects = [];
-        if (preset.chain) { preset.chain.forEach((key, i) => { let b = library.blocks[key] || { name: "UNKNOWN", icon: "?", type: "hidden" }; chainObjects.push({ ...b, key: key, idx: i + 1 }); }); }
-        chainObjects.forEach(b => {
-            const el = document.createElement('div');
-            el.className = 'node-wrapper animate-[popIn_0.2s_ease-out]';
-            const clickAttr = `onclick="event.stopPropagation(); openWikiKey('${b.key}')"`;
-            let content = b.img ? `<img src="${b.img}" class="img-layer" onerror="this.style.display='none';this.nextElementSibling.style.display='block'"><div class="emoji-layer hidden">${b.icon}</div>` : `<div class="emoji-layer">${b.icon}</div>`;
-            el.innerHTML = `<div class="sm-block type-${b.type} cursor-help" ${clickAttr} id="block-${b.idx}"><div class="block-idx">${b.idx}</div><div class="icon-container">${content}</div><div class="sm-block-title">${b.name}</div></div>`;
-            canvas.appendChild(el);
-        });
-        const connList = document.getElementById('connectionsList');
-        if(preset.connections) {
-            connList.innerHTML = preset.connections.map(text => {
-                let interactiveText = text.replace(/\[(\d+)\]/g, (match, id) => `<span class="text-orange-400 font-bold cursor-pointer underline bg-orange-900/30 px-1 rounded" onclick="highlightBlock(${id})" onmouseenter="window.hi(${id})" onmouseleave="window.lo(${id})">[${id}]</span>`);
-                return `<div class="p-3 bg-[#222] rounded border-l-2 border-orange-500 mb-2 hover:bg-[#2a2a2a] transition text-sm">${interactiveText}</div>`;
-            }).join('');
-        }
-        
-        setTimeout(autoFitView, 50); 
-        if(window.innerWidth < 1024) window.toggleInspector(true);
-    }
-
-    // AUTO-FIT (Simplified)
-    window.autoFitView = () => {
-        const blocks = document.querySelectorAll('.sm-block');
-        if (blocks.length === 0) { scale = 1; pointX = 0; pointY = 0; updateTransform(); return; }
-
-        requestAnimationFrame(() => {
-            let minX=Infinity, minY=Infinity, maxX=-Infinity, maxY=-Infinity;
-            blocks.forEach(b => { const x=b.offsetLeft; const y=b.offsetTop; if(x<minX)minX=x; if(y<minY)minY=y; if(x+b.offsetWidth>maxX)maxX=x+b.offsetWidth; if(y+b.offsetHeight>maxY)maxY=y+b.offsetHeight; });
-            
-            const contentW = maxX - minX;
-            const contentH = maxY - minY;
-            const vpW = viewport.offsetWidth;
-            const vpH = viewport.offsetHeight;
-            const padding = window.innerWidth < 1024 ? 40 : 100;
-
-            let targetScale = Math.min((vpW - padding) / contentW, (vpH - padding) / contentH);
-            scale = Math.min(Math.max(targetScale, 0.3), 1.2);
-            
-            pointX = 0;
-            pointY = 0;
-            updateTransform();
-        });
-    }
-
-    window.highlightBlock = (id) => { if(window.innerWidth < 1024) window.toggleInspector(false); window.hi(id); setTimeout(() => window.lo(id), 2000); }
-    window.hi = (id) => { const el = document.getElementById(`block-${id}`); if(el) el.classList.add('active-highlight'); }
-    window.lo = (id) => { const el = document.getElementById(`block-${id}`); if(el) el.classList.remove('active-highlight'); }
-
-    window.resetView = () => window.autoFitView();
-
-    function updateTransform() { container.style.transform = `translate(${pointX}px, ${pointY}px) scale(${scale})`; }
-    
-    function setupZoomPan() {
-        viewport.addEventListener('mousedown', e => { isDragging = true; startX = e.clientX - pointX; startY = e.clientY - pointY; });
-        window.addEventListener('mousemove', e => { if(!isDragging) return; e.preventDefault(); pointX = e.clientX - startX; pointY = e.clientY - startY; updateTransform(); });
-        window.addEventListener('mouseup', () => isDragging = false);
-        viewport.addEventListener('wheel', e => { e.preventDefault(); 
-            const zoomSpeed = 0.1;
-            const newScale = e.deltaY > 0 ? scale - zoomSpeed : scale + zoomSpeed;
-            scale = Math.min(Math.max(0.2, newScale), 3);
-            updateTransform(); 
-        });
-        
-        // Touch (Passive: false)
-        viewport.addEventListener('touchstart', e => {
-            if(e.touches.length === 1) { isDragging=true; startX=e.touches[0].clientX-pointX; startY=e.touches[0].clientY-pointY; }
-            if(e.touches.length === 2) { isDragging=false; lastTouchDist = getTouchDist(e); }
-        }, { passive: false });
-        viewport.addEventListener('touchmove', e => {
-            e.preventDefault();
-            if(isDragging && e.touches.length === 1) { pointX=e.touches[0].clientX-startX; pointY=e.touches[0].clientY-startY; updateTransform(); }
-            if(e.touches.length === 2) {
-                const dist = getTouchDist(e);
-                if(lastTouchDist) {
-                    const delta = dist / lastTouchDist;
-                    scale = Math.min(Math.max(0.2, scale * delta), 3);
-                    updateTransform();
-                }
-                lastTouchDist = dist;
-            }
-        }, { passive: false });
-        viewport.addEventListener('touchend', () => {isDragging=false;lastTouchDist=0;});
-    }
-    function getTouchDist(e) { return Math.hypot(e.touches[0].pageX - e.touches[1].pageX, e.touches[0].pageY - e.touches[1].pageY); }
-
-    window.openWiki = () => { renderWiki(); document.getElementById('wikiModal').classList.remove('hidden'); }
-    window.openWikiKey = (key) => { openWiki(); setTimeout(() => { const el = document.getElementById(`wiki-${key}`); if(el) { el.scrollIntoView({behavior:'smooth', block:'center'}); el.classList.add('ring-2', 'ring-orange-500'); } }, 100); }
-    window.closeWiki = () => document.getElementById('wikiModal').classList.add('hidden');
-    window.openAdmin = () => document.getElementById('adminModal').classList.remove('hidden');
-    window.closeAdmin = () => document.getElementById('adminModal').classList.add('hidden');
-    
-    window.toggleInspector = (forceOpen) => {
-        const panel = document.getElementById('connectionsPanel');
-        const btnMobile = document.getElementById('inspectorBtnMobile');
-        const btnPC = document.getElementById('inspectorBtnPC');
-        if (forceOpen === true) { panel.classList.remove('translate-y-full', 'lg:translate-x-full'); btnMobile.classList.add('hidden'); btnPC.innerText = "▶"; }
-        else if (forceOpen === false) { panel.classList.add('translate-y-full', 'lg:translate-x-full'); btnMobile.classList.remove('hidden'); btnPC.innerText = "◀"; }
-        else { panel.classList.toggle('translate-y-full'); panel.classList.toggle('lg:translate-x-full'); 
-               const isOpen = !panel.classList.contains('translate-y-full');
-               if(isOpen) { btnMobile.classList.add('hidden'); btnPC.innerText = "▶"; } 
-               else { btnMobile.classList.remove('hidden'); btnPC.innerText = "◀"; } 
-        }
-    }
-
-    function renderWiki() { const c = document.getElementById('wikiContent'); if(c.innerHTML !== "") return; const categories = { "Input": [], "Logic": [], "Math/Util": [], "Output": [], "Misc": [], "Fant Mod": [] }; for (const [k, i] of Object.entries(library.wiki)) { let cat = i.category || "Misc"; if (cat.includes("Fant")) cat = "Fant Mod"; if(!categories[cat]) categories[cat] = []; let iconHTML = i.img ? `<div class="w-16 h-16 flex items-center justify-center bg-[#111] rounded border border-[#333] shrink-0"><img src="${i.img}" class="w-full h-full object-contain"></div>` : `<span class="text-4xl">${i.icon || '🔹'}</span>`; categories[cat].push(`<div id="wiki-${k}" class="bg-[#222] p-6 rounded-xl border border-[#333] mb-4 transition hover:border-orange-500/50"><div class="flex gap-6 items-start">${iconHTML}<div><h3 class="text-xl font-bold text-orange-400 mb-2">${i.title}</h3><p class="text-gray-300 text-base leading-relaxed">${i.text}</p></div></div></div>`); } for (const [catName, items] of Object.entries(categories)) { if(items.length > 0) { c.innerHTML += `<div class="text-orange-500 font-bold uppercase tracking-widest text-sm border-b border-[#333] pb-2 mb-6 mt-10">${catName}</div>`; c.innerHTML += items.join(''); } } }
-    window.copyKeys = () => { navigator.clipboard.writeText(Object.keys(library.blocks).join(', ')); document.getElementById('adminLog').innerText = "Скопировано!"; }
-    window.universalMerge = () => { alert("Используйте GitHub!"); }
-
-    init();
-</script>
 </body>
 </html>
