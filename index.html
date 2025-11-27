@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SM Architect v6.0 (Clean)</title>
+    <title>SM Architect v6.2</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/leader-line/1.0.7/leader-line.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Segoe+UI:wght@400;600;700&display=swap" rel="stylesheet">
@@ -14,10 +14,10 @@
         #viewport { flex: 1; position: relative; background-color: #121212; cursor: grab; width: 100%; height: 100%; overflow: hidden; }
         #viewport:active { cursor: grabbing; }
         
-        /* ВАЖНО: Origin 0 0 для Engine v5.5 */
+        /* ВАЖНО: Origin 0 0 (Левый верхний угол) */
         #canvas-container { 
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            transition: transform 0.2s cubic-bezier(0.1, 0.7, 0.1, 1); 
+            transition: transform 0.1s cubic-bezier(0.1, 0.7, 0.1, 1); 
             transform-origin: 0 0; 
         }
         .bg-grid { position: absolute; inset: -5000px; z-index: 0; background-image: radial-gradient(#333 1px, transparent 1px); background-size: 20px 20px; opacity: 0.4; pointer-events: none; }
@@ -111,9 +111,10 @@
     <div id="wikiModal" class="fixed inset-0 bg-black/90 hidden z-[100] flex items-center justify-center p-4 backdrop-blur-sm" onclick="if(event.target===this)closeWiki()"><div class="bg-[#1a1a1a] w-full max-w-4xl h-[85vh] rounded-2xl border border-[#333] flex flex-col shadow-2xl"><div class="p-4 border-b border-[#333] flex justify-between items-center"><h2 class="text-2xl font-bold text-orange-500">📚 Wiki</h2><button onclick="closeWiki()" class="text-3xl text-gray-500 hover:text-white p-2">&times;</button></div><div class="p-8 overflow-y-auto space-y-8 text-gray-300" id="wikiContent"></div></div></div>
     <div id="adminModal" class="fixed inset-0 bg-black/95 hidden z-[110] flex items-center justify-center p-4 backdrop-blur-md" onclick="if(event.target===this)closeAdmin()"><div class="bg-[#1a1a1a] w-full max-w-3xl rounded-xl border border-[#333] flex flex-col shadow-2xl max-h-[90vh]"><div class="p-5 border-b border-[#333] flex justify-between items-center"><h2 class="text-xl font-bold text-blue-400">⚙️ Admin</h2><button onclick="closeAdmin()" class="text-gray-500 hover:text-white p-2">✕</button></div><div class="p-6 overflow-y-auto flex-1 space-y-4"><textarea id="universalImport" class="w-full h-60 bg-[#0a0a0a] border border-[#333] rounded p-4 text-sm font-mono text-green-400 focus:border-blue-500 outline-none" placeholder="JSON..."></textarea><div class="flex gap-3 pt-2"><button onclick="copyKeys()" class="px-4 py-3 bg-[#222] text-gray-300 rounded border border-[#333] hover:text-white text-sm font-bold flex-1">📋 Keys</button><button onclick="universalMerge()" class="px-4 py-3 bg-blue-900/30 text-blue-300 rounded border border-blue-800 hover:bg-blue-800 hover:text-white text-sm font-bold flex-1">Import</button></div></div></div></div>
 
-    <script src="blocks.js"></script>
-    <script src="wiki.js"></script>
-    <script src="presets.js"></script>
-    <script src="wires.js"></script>
-    <script src="engine.js"></script> </body>
+    <script src="blocks.js?v=6.2"></script>
+    <script src="wiki.js?v=6.2"></script>
+    <script src="presets.js?v=6.2"></script>
+    <script src="wires.js?v=6.2"></script>
+    <script src="engine.js?v=6.2"></script>
+</body>
 </html>
