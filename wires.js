@@ -1,82 +1,94 @@
 console.log("✅ Wires Module Loaded");
 
+// Хранилище активных линий
 window.activeLines = [];
 
-// Функция отрисовки (вызывается из engine.js при загрузке схемы)
+// 1. Функция отрисовки (вызывается при загрузке схемы)
 window.drawWires = function() {
-    // 1. Очищаем старые (на всякий случай)
+    // Сначала удаляем старые, чтобы не было дублей
     window.clearWires();
     
-    // 2. Берем текущую схему
     const list = document.getElementById('connectionsList');
     if (!list) return;
     
-    // Получаем сырой текст связей из текущего пресета
-    // (В engine.js мы не передавали сюда данные, поэтому хитро найдем их)
-    // Но лучше всего парсить прямо из DOM списка подключений, который мы уже построили
-    
-    // Проходимся по всем строчкам в логе подключений
+    // Ищем все строчки в списке подключений
+    // Они выглядят как HTML элементы внутри списка
+    // Текст внутри: "[1] Sensor -> [2] Logic"
     const rows = list.querySelectorAll('div');
     
     rows.forEach(row => {
         const text = row.innerText;
         
-        // Ищем паттерн: [число] ... -> [число]
-        // Например: "[1] Sensor -> [2] Logic"
+        // Магия RegEx: Ищем пары чисел в скобках [1] ... [2]
+        // matchAll возвращает итератор, превращаем в массив
         const matches = [...text.matchAll(/\[(\d+)\]/g)];
         
+        // Если нашли хотя бы две метки (Откуда и Куда)
         if (matches.length >= 2) {
-            // Берем первую пару (Откуда -> Куда)
-            const fromID = matches[0][1];
-            const toID = matches[1][1];
+            const fromID = matches[0][1]; // Первое число (например "1")
+            const toID = matches[1][1];   // Второе число (например "2")
             
+            // Ищем эти блоки на холсте
             const el1 = document.getElementById(`block-${fromID}`);
             const el2 = document.getElementById(`block-${toID}`);
             
             if (el1 && el2) {
                 try {
-                    // Рисуем линию
+                    // Создаем линию
                     const line = new LeaderLine(
                         el1,
                         el2,
                         {
                             color: '#f97316', // Оранжевый (Tailwind orange-500)
-                            size: 4,
-                            path: 'fluid',    // Плавная кривая
-                            startSocket: 'right',
-                            endSocket: 'left',
-                            startPlug: 'disc', // Точка в начале
-                            endPlug: 'arrow3'  // Стрелка в конце
+                            size: 4,          // Толщина
+                            path: 'fluid',    // Плавный изгиб
+                            startSocket: 'right', // Выходит справа
+                            endSocket: 'left',    // Входит слева
+                            startPlug: 'disc',    // Точка на старте
+                            endPlug: 'arrow3',    // Стрелка в конце
+                            dropShadow: false,    // Тень (выкл для скорости)
+                            hide: true            // Сначала скрываем, пока не позиционируем
                         }
                     );
+                    
+                    // Сохраняем в память
                     window.activeLines.push(line);
+                    
+                    // Показываем линию
+                    line.show('draw', {duration: 300, timing: 'ease-out'});
+                    
                 } catch (e) {
-                    console.error("Wire error:", e);
+                    console.warn("Wire error:", e);
                 }
             }
         }
     });
     
-    // Сразу обновляем позицию, чтобы линии встали ровно
+    // Принудительно обновляем позицию сразу после создания
     window.updateWires();
 };
 
-// Удаление всех линий
+// 2. Функция очистки (вызывается перед загрузкой новой схемы)
 window.clearWires = function() {
-    window.activeLines.forEach(line => line.remove());
+    window.activeLines.forEach(line => {
+        try {
+            line.remove(); // Удаляем SVG из DOM
+        } catch(e) {}
+    });
     window.activeLines = [];
 };
 
-// Обновление позиций (вызывается при зуме и драге)
+// 3. Функция обновления (вызывается Движком при каждом кадре зума/драга)
 window.updateWires = function() {
     window.activeLines.forEach(line => {
         try {
+            // Самая важная команда: пересчитать координаты
             line.position(); 
         } catch(e) {}
     });
 };
 
-// Инициализация (если нужно)
+// 4. Инициализация (заглушка, если нужна будет в будущем)
 window.initWires = function() {
-    // Настройка стилей по умолчанию для всех линий (опционально)
+    // Можно задать глобальные настройки LeaderLine здесь
 };
